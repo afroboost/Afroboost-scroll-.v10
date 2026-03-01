@@ -324,7 +324,7 @@ const PartnerVideoCard = ({ partner, onToggleMute, isMuted, onLike, isLiked, onN
           className="absolute right-3 bottom-28 flex flex-col items-center gap-5"
           data-testid="reels-action-bar"
         >
-          {/* Bouton Like */}
+          {/* v10.3: Bouton Like avec GLOW VIOLET */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -334,15 +334,37 @@ const PartnerVideoCard = ({ partner, onToggleMute, isMuted, onLike, isLiked, onN
             data-testid={`like-btn-${partner.id || partner.email}`}
           >
             <div 
-              className="w-11 h-11 rounded-full flex items-center justify-center"
+              className="w-11 h-11 rounded-full flex items-center justify-center transition-all"
               style={{
-                background: 'rgba(0,0,0,0.4)',
-                backdropFilter: 'blur(4px)'
+                background: isLiked ? 'rgba(217, 28, 210, 0.3)' : 'rgba(0,0,0,0.4)',
+                backdropFilter: 'blur(4px)',
+                boxShadow: isLiked ? '0 0 20px rgba(217, 28, 210, 0.8), 0 0 40px rgba(217, 28, 210, 0.4)' : 'none'
               }}
             >
-              <HeartIcon filled={isLiked} />
+              <svg 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill={isLiked ? '#D91CD2' : 'none'} 
+                stroke={isLiked ? '#D91CD2' : 'white'}
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{
+                  filter: isLiked ? 'drop-shadow(0 0 8px #D91CD2)' : 'none',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
             </div>
-            <span className="text-white text-xs mt-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+            <span 
+              className="text-xs mt-1 font-medium"
+              style={{ 
+                color: isLiked ? '#D91CD2' : 'white',
+                textShadow: isLiked ? '0 0 10px rgba(217, 28, 210, 0.8)' : '0 1px 3px rgba(0,0,0,0.9)'
+              }}
+            >
               {isLiked ? '1' : '0'}
             </span>
           </button>
