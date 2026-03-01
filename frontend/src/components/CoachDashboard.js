@@ -4178,7 +4178,10 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                     </div>
                     
                     {/* Toggle: Mode Maintenance */}
-                    <div className="px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors">
+                    <div 
+                      className="px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+                      style={{ maxWidth: '100%' }}
+                    >
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{platformSettings.maintenance_mode ? '🔴' : '🟢'}</span>
                         <div>
@@ -4188,17 +4191,20 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                       </div>
                       <button
                         onClick={() => togglePlatformSetting('maintenance_mode')}
-                        className="w-11 h-6 rounded-full relative transition-all duration-300"
+                        className="w-12 h-7 rounded-full relative transition-all duration-300"
                         style={{ 
                           background: platformSettings.maintenance_mode 
-                            ? 'linear-gradient(90deg, #ef4444, #dc2626)' 
-                            : 'rgba(255,255,255,0.15)'
+                            ? 'linear-gradient(90deg, #D91CD2, #8b5cf6)' 
+                            : 'rgba(255,255,255,0.15)',
+                          boxShadow: platformSettings.maintenance_mode 
+                            ? '0 0 15px rgba(217, 28, 210, 0.6), 0 0 30px rgba(217, 28, 210, 0.3)' 
+                            : 'none'
                         }}
                         data-testid="toggle-maintenance"
                       >
                         <span 
-                          className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300"
-                          style={{ left: platformSettings.maintenance_mode ? '24px' : '4px' }}
+                          className="absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300"
+                          style={{ left: platformSettings.maintenance_mode ? '26px' : '4px' }}
                         />
                       </button>
                     </div>
