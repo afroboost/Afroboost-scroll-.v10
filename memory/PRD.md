@@ -1,5 +1,54 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## v10.9 - INTERFACE ÉPURÉE ET RÉSERVER BAS-DROITE VALIDÉS ✅ (01 Mars 2026)
+
+### STATUT: MISSION v10.9 COMPLÈTE
+
+| Objectif | Statut |
+|----------|--------|
+| Logo Afroboost central supprimé | ✅ |
+| Bouton Contact supprimé | ✅ |
+| Réserver sans cadre | ✅ |
+| Position bas-droite | ✅ |
+
+### 1. NETTOYAGE VITRINE
+
+**Éléments SUPPRIMÉS:**
+- Logo Afroboost SVG central (50x50)
+- Bouton Contact avec icône enveloppe
+
+**Éléments CONSERVÉS:**
+- Bouton Retour (icône flèche)
+- Bouton Réserver (épuré, bas-droite)
+
+### 2. BOUTON RÉSERVER ÉPURÉ
+
+**CoachVitrine.js L783-806:**
+```jsx
+<div className="absolute inset-0 z-10">
+  <button
+    className="absolute bottom-8 right-4"
+    style={{
+      background: 'transparent',
+      border: 'none'
+    }}
+    data-testid="vitrine-cta-btn"
+  >
+    <svg>📅</svg>
+    <span>Réserver</span>
+  </button>
+</div>
+```
+
+### Tests v10.9 - Iteration 132
+
+| Catégorie | Tests | Résultat |
+|-----------|-------|----------|
+| Backend | 3/3 | ✅ 100% |
+| Frontend | 10/10 | ✅ 100% |
+
+---
+
 ## v10.7 - BOUTONS ICONIQUES ET DESIGN COMPACT VALIDÉS ✅ (01 Mars 2026)
 
 ### STATUT: MISSION v10.7 COMPLÈTE
