@@ -777,26 +777,52 @@ const CoachVitrine = ({ username, onClose, onBack }) => {
                 </svg>
               </div>
               
-              {/* v9.4.6: Textes superposés supprimés - Vidéo épurée */}
-              {/* Le nom du coach est déjà en haut à droite (ligne 562), pas besoin de le répéter */}
-              
-              {/* Bouton Réserver avec couleurs dynamiques (v9.4.6) */}
-              <button
-                onClick={() => {
-                  // Scroll vers les cours
-                  document.getElementById('vitrine-courses-section')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-8 py-4 rounded-xl text-lg font-semibold transition-all hover:scale-105"
-                style={{
-                  background: `linear-gradient(135deg, var(--primary-color, #D91CD2) 0%, var(--secondary-color, #8B5CF6) 100%)`,
-                  color: 'white',
-                  boxShadow: `0 0 30px var(--glow-color, rgba(217, 28, 210, 0.5)), 0 0 60px var(--glow-color-strong, rgba(139, 92, 246, 0.3))`,
-                  border: '1px solid rgba(255,255,255,0.2)'
-                }}
-                data-testid="vitrine-cta-btn"
-              >
-                Réserver mon cours
-              </button>
+              {/* v10.7: ICÔNES COMPACTES - Grille 2 colonnes */}
+              <div className="flex gap-4">
+                {/* Bouton Réserver - Icône Calendrier */}
+                <button
+                  onClick={() => {
+                    document.getElementById('vitrine-courses-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="w-20 h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:scale-110"
+                  style={{
+                    background: 'rgba(217, 28, 210, 0.2)',
+                    border: '1px solid rgba(217, 28, 210, 0.4)',
+                    boxShadow: '0 0 20px rgba(217, 28, 210, 0.3)'
+                  }}
+                  data-testid="vitrine-cta-btn"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <span className="text-white text-[10px] font-medium">Réserver</span>
+                </button>
+                
+                {/* Bouton Chat - Icône Enveloppe */}
+                <button
+                  onClick={() => {
+                    // Ouvrir le chat widget
+                    const chatBtn = document.querySelector('[data-testid="chat-widget-button"]');
+                    if (chatBtn) chatBtn.click();
+                  }}
+                  className="w-20 h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:scale-110"
+                  style={{
+                    background: 'rgba(139, 92, 246, 0.2)',
+                    border: '1px solid rgba(139, 92, 246, 0.4)',
+                    boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)'
+                  }}
+                  data-testid="vitrine-chat-btn"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                  </svg>
+                  <span className="text-white text-[10px] font-medium">Contact</span>
+                </button>
+              </div>
             </div>
             
             {/* Animation CSS */}
