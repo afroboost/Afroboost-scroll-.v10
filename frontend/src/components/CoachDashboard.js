@@ -4229,10 +4229,11 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
               <button 
                 onClick={() => setShowAdminPanel(true)}
                 title="Panneau Super Admin"
-                className="px-3 py-2 rounded-lg text-white text-sm flex items-center gap-2"
+                className="h-10 px-4 rounded-lg text-white text-sm font-medium flex items-center gap-2 transition-all hover:scale-105"
                 style={{ 
                   background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)',
-                  border: 'none'
+                  border: '1px solid rgba(217, 28, 210, 0.4)',
+                  boxShadow: '0 0 10px rgba(217, 28, 210, 0.3)'
                 }}
                 data-testid="super-admin-btn"
               >
@@ -4248,7 +4249,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 onClick={handleStripeConnect}
                 disabled={stripeConnectLoading}
                 title={stripeConnectStatus?.connected ? "Compte Stripe connecté" : "Connecter votre Stripe"}
-                className="px-3 py-2 rounded-lg text-white text-sm flex items-center gap-2"
+                className="h-10 px-4 rounded-lg text-white text-sm font-medium flex items-center gap-2 transition-all hover:scale-105"
                 style={{ 
                   background: stripeConnectStatus?.connected 
                     ? 'rgba(34, 197, 94, 0.3)' 
