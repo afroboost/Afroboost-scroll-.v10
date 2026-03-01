@@ -1,5 +1,55 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## v10.5 - BOUTON MAINTENANCE ET DASHBOARD HARMONISÉS VALIDÉS ✅ (01 Mars 2026)
+
+### STATUT: MISSION v10.5 COMPLÈTE
+
+| Objectif | Statut |
+|----------|--------|
+| Toggle Maintenance glow violet | ✅ |
+| Boutons Dashboard h-10 (40px) | ✅ |
+| Container boutons gap-3 (12px) | ✅ |
+| Style uniforme premium | ✅ |
+
+### 1. TOGGLE MAINTENANCE AVEC GLOW VIOLET
+
+**CoachDashboard.js L4187-4211:**
+```jsx
+<button
+  className="w-12 h-7 rounded-full"
+  style={{ 
+    background: maintenanceMode 
+      ? 'linear-gradient(90deg, #D91CD2, #8b5cf6)' 
+      : 'rgba(255,255,255,0.15)',
+    boxShadow: maintenanceMode 
+      ? '0 0 15px rgba(217, 28, 210, 0.6), 0 0 30px rgba(217, 28, 210, 0.3)' 
+      : 'none'
+  }}
+/>
+```
+
+### 2. BOUTONS DASHBOARD HARMONISÉS (h-10 = 40px)
+
+| Bouton | Ligne | Style |
+|--------|-------|-------|
+| Admin | L4232 | h-10 px-4 rounded-lg + gradient violet |
+| Stripe | L4252 | h-10 px-4 rounded-lg + gradient bleu |
+| Partager | L4283 | h-10 px-4 rounded-lg + fond glass |
+| Retour | L4312 | h-10 px-4 rounded-lg + gradient violet |
+
+### 3. CONTAINER BOUTONS
+
+**L4122:** `className="flex flex-wrap gap-3 items-center justify-center sm:justify-end"`
+
+### Tests v10.5 - Iteration 129
+
+| Catégorie | Tests | Résultat |
+|-----------|-------|----------|
+| Backend | 15/15 | ✅ 100% |
+| Frontend | All | ✅ 100% |
+
+---
+
 ## v10.4 - CHAT PERSISTANT ET DASHBOARD HARMONISÉ VALIDÉS ✅ (01 Mars 2026)
 
 ### STATUT: MISSION v10.4 COMPLÈTE
