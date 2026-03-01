@@ -792,27 +792,33 @@ const PartnersCarousel = ({ onPartnerClick, onSearch, maintenanceMode = false, i
             </div>
           </div>
         ) : (
-          filteredPartners.map((partner, index) => (
-            <div 
-              key={partner.id || partner.email || index}
-              className="snap-start snap-always"
-              style={{ height: '100%' }}
-            >
-              <PartnerVideoCard
-                partner={partner}
-                isMuted={globalMuted}
-                onToggleMute={() => setGlobalMuted(!globalMuted)}
-                isLiked={likedStates[partner.id || partner.email] || false}
-                onLike={() => handleToggleLike(partner.id || partner.email)}
-                isPaused={pausedStates[partner.id || partner.email] || false}
-                onTogglePause={() => handleTogglePause(partner.id || partner.email)}
-                onNavigate={handleNavigate}
-                isVisible={Math.abs(index - activeIndex) <= 1}
-                maintenanceMode={maintenanceMode}
-                isSuperAdmin={isSuperAdmin}
-              />
-            </div>
-          ))
+          filteredPartners.map((partner, index) => {
+            // v9.6.9: Clé unique stable - Priorité: id > email > index
+            const uniqueKey = partner.id || partner.email || `partner_${index}`;
+            
+            return (
+              <div 
+                key={uniqueKey}
+                className="snap-start snap-always"
+                style={{ height: '100%' }}
+                data-partner-key={uniqueKey}
+              >
+                <PartnerVideoCard
+                  partner={partner}
+                  isMuted={globalMuted}
+                  onToggleMute={() => setGlobalMuted(!globalMuted)}
+                  isLiked={likedStates[partner.id || partner.email] || false}
+                  onLike={() => handleToggleLike(partner.id || partner.email)}
+                  isPaused={pausedStates[partner.id || partner.email] || false}
+                  onTogglePause={() => handleTogglePause(partner.id || partner.email)}
+                  onNavigate={handleNavigate}
+                  isVisible={Math.abs(index - activeIndex) <= 1}
+                  maintenanceMode={maintenanceMode}
+                  isSuperAdmin={isSuperAdmin}
+                />
+              </div>
+            );
+          })
         )}
       </div>
     </div>
