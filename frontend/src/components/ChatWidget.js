@@ -325,8 +325,8 @@ const InlineCtaButton = ({ label, url }) => {
  * Couleurs: Violet (#8B5CF6) pour le Coach, Gris foncé pour les membres/IA
  */
 const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUserId, profilePhotoUrl, onReservationClick }) => {
-  // v7.2: Fallback robuste pour texte (content OU text, jamais vide)
-  const messageText = msg.content || msg.text || '';
+  // v10.4: Fallback robuste pour texte (content, text, body - jamais vide)
+  const messageText = msg.content || msg.text || msg.body || '';
   const htmlContent = parseMessageContent(messageText);
   const isOtherUser = isCommunity && msg.type === 'user' && msg.senderId && msg.senderId !== currentUserId;
   
