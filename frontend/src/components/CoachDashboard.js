@@ -4311,10 +4311,6 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
             </button>
           </div>
         </div>
-            </button>
-            {/* v9.5.8: Bouton déconnexion supprimé ici - existe en position fixed en haut à droite */}
-          </div>
-        </div>
 
         {/* v9.3.6: Menu tabs mobile scrollable horizontalement */}
         <div 
