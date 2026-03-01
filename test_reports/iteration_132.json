@@ -1,0 +1,140 @@
+{
+  "summary": "Mission v10.9 - Nettoyage UI et bouton Réserver ciblé - 10/10 tests PASSED. Code implementation verified: (1) Bouton Réserver has transparent background and no border, (2) Position absolute bottom-8 right-4 applied (CSS ISSUE found - see below), (3) Logo Afroboost central REMOVED from hero, (4) Bouton Contact (enveloppe) REMOVED, (5) API /api/partners/active works (5 partners), (6) 3 header icons aligned on main page.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "CoachVitrine.js",
+        "issue": "Bouton Réserver position CSS bug - Parent div 'relative z-10 h-full' has height: 0px, causing the button with 'absolute bottom-8 right-4' to appear at top of hero instead of bottom-right. The h-full class doesn't work because the parent has no content.",
+        "selector": "[data-testid='vitrine-cta-btn']",
+        "priority": "MEDIUM",
+        "location": "Line 768",
+        "fix_suggestion": "Change parent div from 'relative z-10 h-full' to 'absolute inset-0 z-10' OR move the button out of the relative div and use absolute positioning relative to the hero container directly"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_v109_mission.py",
+    "/app/test_reports/pytest/pytest_v109_mission.xml"
+  ],
+  "action_items": [
+    "FIX CSS: The Réserver button appears at TOP of hero (y: 20px) instead of BOTTOM-RIGHT (expected y: ~700px). The parent div 'relative z-10 h-full' at L768 has height: 0. Change to 'absolute inset-0 z-10' to inherit full hero dimensions."
+  ],
+  "critical_code_review_comments": [
+    "✅ CoachVitrine.js L770-794: Bouton Réserver has background: 'transparent' and border: 'none' - CORRECT",
+    "✅ CoachVitrine.js L774: Uses 'absolute bottom-8 right-4' positioning - CORRECT",
+    "✅ CoachVitrine.js: Contact button (vitrine-chat-btn) REMOVED - CORRECT",
+    "✅ CoachVitrine.js: Afroboost central logo REMOVED from hero - CORRECT",
+    "❌ CoachVitrine.js L768: Parent div 'relative z-10 h-full' has computed height: 0px - CSS BUG",
+    "✅ API /api/partners/active returns 5 partners - HTTP 200",
+    "✅ API /api/health returns healthy - HTTP 200",
+    "✅ 3 header icons aligned on main page"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_v109_mission.py"
+  ],
+  "success_rate": {
+    "backend": "100% - 3/3 API tests passed",
+    "frontend": "90% - 7/7 code tests passed, 1 CSS positioning bug found"
+  },
+  "test_credentials": {
+    "api_url": "https://multi-coach-saas.preview.emergentagent.com",
+    "super_admin_emails": ["afroboost.bassi@gmail.com", "contact.artboost@gmail.com"]
+  },
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Mission v10.9 requirements mostly implemented. CRITICAL CSS BUG: The Réserver button is supposed to be at bottom-8 right-4 of the hero but appears at TOP because parent div (L768) has height: 0. The button style (transparent, no border) is correct. Contact button and Afroboost logo are correctly removed. Main agent needs to fix the parent div CSS for proper positioning.",
+  "verified_features_v109": {
+    "BOUTON_RESERVER_TRANSPARENT": {
+      "status": "PASS",
+      "location": "CoachVitrine.js L775-778",
+      "style": "background: 'transparent', border: 'none'"
+    },
+    "BOUTON_RESERVER_POSITION": {
+      "status": "PARTIAL - CSS BUG",
+      "location": "CoachVitrine.js L774",
+      "className": "absolute bottom-8 right-4",
+      "actual_position": "top: 20px (WRONG - should be ~bottom of hero)",
+      "root_cause": "Parent div 'relative z-10 h-full' has height: 0"
+    },
+    "LOGO_AFROBOOST_REMOVED": {
+      "status": "PASS",
+      "note": "No Afroboost logo in hero section"
+    },
+    "BOUTON_CONTACT_REMOVED": {
+      "status": "PASS",
+      "note": "data-testid='vitrine-chat-btn' not found - correctly removed"
+    },
+    "HEADER_3_ICONS_ALIGNED": {
+      "status": "PASS",
+      "note": "3 icons (globe, search, sound) aligned in header on main page"
+    },
+    "API_PARTNERS_ACTIVE": {
+      "status": "PASS",
+      "endpoint": "/api/partners/active",
+      "response": "5 partners returned, HTTP 200"
+    }
+  },
+  "css_bug_details": {
+    "element": "div.relative.z-10.h-full (Line 768)",
+    "computed_height": "0px",
+    "expected_height": "inherit from hero (~648px)",
+    "child_affected": "button[data-testid='vitrine-cta-btn']",
+    "fix_options": [
+      "Option 1: Change 'relative z-10 h-full' to 'absolute inset-0 z-10'",
+      "Option 2: Add min-h-full and ensure parent has flex column",
+      "Option 3: Move button outside this div and position relative to hero-container"
+    ]
+  },
+  "pytest_results": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "tests": [
+      "test_health_endpoint - PASS",
+      "test_partners_active_endpoint - PASS",
+      "test_coach_vitrine_endpoint - PASS",
+      "test_reserver_button_transparent_background - PASS",
+      "test_reserver_button_no_border - PASS",
+      "test_reserver_button_position_absolute - PASS",
+      "test_calendar_svg_icon - PASS",
+      "test_contact_button_removed - PASS",
+      "test_afroboost_central_logo_removed - PASS",
+      "test_reserver_button_testid - PASS"
+    ]
+  },
+  "playwright_visual_tests": {
+    "vitrine_tests": [
+      "✅ Bouton Réserver found with data-testid='vitrine-cta-btn'",
+      "✅ Background: rgba(0, 0, 0, 0) - TRANSPARENT",
+      "✅ Border: 0px none - NO BORDER",
+      "✅ Position: absolute",
+      "❌ Button appears at y: 20 instead of bottom of hero (CSS bug)",
+      "✅ Contact button (enveloppe) correctly REMOVED",
+      "✅ Afroboost logo not in hero",
+      "✅ QR and Share buttons in header",
+      "✅ Offers slider visible"
+    ],
+    "main_page_tests": [
+      "✅ 3 header icons aligned (globe, search, sound)",
+      "✅ API /api/partners/active returns 5 partners"
+    ],
+    "screenshots": [
+      ".screenshots/v109_vitrine_initial.png",
+      ".screenshots/v109_vitrine_scrolled.png",
+      ".screenshots/v109_hero_reserver.png",
+      ".screenshots/v109_main_page.png",
+      ".screenshots/v109_debug_position.png"
+    ]
+  },
+  "anti_casse_verification": {
+    "bassi_reservations": "Not touched - as per ANTI-CASSE instructions",
+    "bassi_offers": "Not modified"
+  }
+}
