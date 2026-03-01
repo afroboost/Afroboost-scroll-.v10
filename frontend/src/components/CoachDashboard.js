@@ -4134,35 +4134,36 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
               </div>
             )}
           </div>
-          {/* v10.5: Conteneur boutons harmonisé - Flexbox avec gap uniforme */}
-          <div className="flex flex-wrap gap-3 items-center justify-center sm:justify-end">
-            {/* === v9.2.7: QUICK CONTROL - Icône minimaliste Super Admin === */}
+          {/* v10.6: GRILLE D'ACTIONS MINIMALISTE - 2 colonnes sur mobile */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full sm:w-auto">
+            {/* === QUICK CONTROL - Super Admin === */}
             {isSuperAdmin && (
               <div className="relative" ref={quickControlRef}>
                 <button 
                   onClick={() => setShowQuickControl(!showQuickControl)}
                   title="Quick Control"
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
+                  className="w-full h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-105"
                   style={{ 
                     background: showQuickControl 
-                      ? 'linear-gradient(135deg, rgba(217,28,210,0.4), rgba(139,92,246,0.4))' 
-                      : 'rgba(255,255,255,0.08)',
-                    border: showQuickControl ? '1px solid rgba(217,28,210,0.6)' : '1px solid rgba(255,255,255,0.1)'
+                      ? 'linear-gradient(135deg, rgba(217,28,210,0.3), rgba(139,92,246,0.3))' 
+                      : 'rgba(255,255,255,0.05)',
+                    border: showQuickControl ? '1px solid rgba(217,28,210,0.5)' : '1px solid rgba(255,255,255,0.1)',
+                    boxShadow: showQuickControl ? '0 0 20px rgba(217,28,210,0.3)' : 'none'
                   }}
                   data-testid="quick-control-btn"
                 >
-                  {/* Icône 3 points verticaux style premium */}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                    <circle cx="12" cy="5" r="1.5" fill="currentColor" />
-                    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-                    <circle cx="12" cy="19" r="1.5" fill="currentColor" />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <circle cx="12" cy="5" r="1.5" fill="white" />
+                    <circle cx="12" cy="12" r="1.5" fill="white" />
+                    <circle cx="12" cy="19" r="1.5" fill="white" />
                   </svg>
+                  <span className="text-white/80 text-xs">Quick</span>
                 </button>
                 
-                {/* Menu Quick Control */}
+                {/* Menu Quick Control - FIXÉ pour mobile */}
                 {showQuickControl && (
                   <div 
-                    className="absolute right-0 mt-2 w-64 rounded-xl overflow-hidden z-50"
+                    className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-64 rounded-xl overflow-hidden z-50"
                     style={{ 
                       background: 'linear-gradient(180deg, rgba(20,10,30,0.98) 0%, rgba(10,5,20,0.99) 100%)',
                       border: '1px solid rgba(217,28,210,0.3)',
@@ -4201,10 +4202,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                     </div>
                     
                     {/* Toggle: Mode Maintenance */}
-                    <div 
-                      className="px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
-                      style={{ maxWidth: '100%' }}
-                    >
+                    <div className="px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors">
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{platformSettings.maintenance_mode ? '🔴' : '🟢'}</span>
                         <div>
@@ -4214,68 +4212,105 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                       </div>
                       <button
                         onClick={() => togglePlatformSetting('maintenance_mode')}
-                        className="w-12 h-7 rounded-full relative transition-all duration-300"
+                        className="w-11 h-6 rounded-full relative transition-all duration-300"
                         style={{ 
                           background: platformSettings.maintenance_mode 
                             ? 'linear-gradient(90deg, #D91CD2, #8b5cf6)' 
                             : 'rgba(255,255,255,0.15)',
                           boxShadow: platformSettings.maintenance_mode 
-                            ? '0 0 15px rgba(217, 28, 210, 0.6), 0 0 30px rgba(217, 28, 210, 0.3)' 
+                            ? '0 0 15px rgba(217, 28, 210, 0.6)' 
                             : 'none'
                         }}
                         data-testid="toggle-maintenance"
                       >
                         <span 
-                          className="absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300"
-                          style={{ left: platformSettings.maintenance_mode ? '26px' : '4px' }}
+                          className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300"
+                          style={{ left: platformSettings.maintenance_mode ? '24px' : '4px' }}
                         />
                       </button>
                     </div>
                     
-                    {/* Separator */}
-                    <div className="border-t mx-3" style={{ borderColor: 'rgba(255,255,255,0.1)' }} />
-                    
                     {/* Info */}
-                    <div className="px-4 py-2">
-                      <p className="text-[10px] text-white/30 text-center">
-                        Contrôles instantanés • Super Admin
-                      </p>
+                    <div className="px-4 py-2 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                      <p className="text-[10px] text-white/30 text-center">Super Admin</p>
                     </div>
                   </div>
                 )}
               </div>
             )}
             
-            {/* === BOUTON SUPER ADMIN (visible uniquement pour Bassi) === */}
+            {/* === CARTE ADMIN (Super Admin uniquement) === */}
             {isSuperAdmin && (
               <button 
                 onClick={() => setShowAdminPanel(true)}
                 title="Panneau Super Admin"
-                className="h-10 px-4 rounded-lg text-white text-sm font-medium flex items-center gap-2 transition-all hover:scale-105"
+                className="h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-105"
                 style={{ 
-                  background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)',
-                  border: '1px solid rgba(217, 28, 210, 0.4)',
-                  boxShadow: '0 0 10px rgba(217, 28, 210, 0.3)'
+                  background: 'linear-gradient(135deg, rgba(217,28,210,0.2), rgba(139,92,246,0.2))',
+                  border: '1px solid rgba(217, 28, 210, 0.3)',
+                  boxShadow: '0 0 15px rgba(217, 28, 210, 0.2)'
                 }}
                 data-testid="super-admin-btn"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L9 9l-7 2 5 5-1 7 6-3 6 3-1-7 5-5-7-2-3-7z" />
                 </svg>
-                Admin
+                <span className="text-white/80 text-xs">Admin</span>
               </button>
             )}
-            {/* === BOUTON STRIPE CONNECT (visible uniquement pour les coachs, pas Bassi) v8.9.3 === */}
+            
+            {/* === CARTE STRIPE (Coachs uniquement) === */}
             {!isSuperAdmin && (
               <button 
                 onClick={handleStripeConnect}
                 disabled={stripeConnectLoading}
                 title={stripeConnectStatus?.connected ? "Compte Stripe connecté" : "Connecter votre Stripe"}
-                className="h-10 px-4 rounded-lg text-white text-sm font-medium flex items-center gap-2 transition-all hover:scale-105"
+                className="h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-105"
                 style={{ 
                   background: stripeConnectStatus?.connected 
-                    ? 'rgba(34, 197, 94, 0.3)' 
-                    : 'linear-gradient(135deg, #635BFF, #8b5cf6)',
+                    ? 'rgba(34, 197, 94, 0.2)' 
+                    : 'linear-gradient(135deg, rgba(99,91,255,0.2), rgba(139,92,246,0.2))',
+                  border: stripeConnectStatus?.connected 
+                    ? '1px solid rgba(34, 197, 94, 0.4)' 
+                    : '1px solid rgba(99,91,255,0.3)',
+                  opacity: stripeConnectLoading ? 0.7 : 1
+                }}
+                data-testid="stripe-connect-btn"
+              >
+                <span className="text-lg">{stripeConnectStatus?.connected ? '✅' : '💳'}</span>
+                <span className="text-white/80 text-xs">{stripeConnectLoading ? '...' : 'Stripe'}</span>
+              </button>
+            )}
+            
+            {/* === CARTE PARTAGER === */}
+            <button 
+              onClick={handleCoachShareLink}
+              title={linkCopied ? "Lien copié !" : "Partager le site"}
+              className="h-20 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-105"
+              style={{ 
+                background: linkCopied 
+                  ? 'rgba(34, 197, 94, 0.2)' 
+                  : 'rgba(255,255,255,0.05)',
+                border: linkCopied 
+                  ? '1px solid rgba(34, 197, 94, 0.4)' 
+                  : '1px solid rgba(255,255,255,0.1)',
+                boxShadow: linkCopied ? '0 0 15px rgba(34, 197, 94, 0.3)' : 'none'
+              }}
+              data-testid="coach-share"
+            >
+              {linkCopied ? (
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+              )}
+              <span className="text-white/80 text-xs">{linkCopied ? 'Copié!' : 'Partager'}</span>
+            </button>
+          </div>
+        </div>
                   border: stripeConnectStatus?.connected ? '1px solid rgba(34, 197, 94, 0.5)' : 'none',
                   opacity: stripeConnectLoading ? 0.7 : 1
                 }}
