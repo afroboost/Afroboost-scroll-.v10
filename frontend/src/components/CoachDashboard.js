@@ -4295,7 +4295,21 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
                 </>
               )}
             </button>
-            <button onClick={onBack} className="px-4 py-2 rounded-lg glass text-white text-sm" data-testid="coach-back">{t('back')}</button>
+            <button 
+              onClick={onBack} 
+              className="px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center gap-2 transition-all hover:scale-105"
+              style={{ 
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(217, 28, 210, 0.4))',
+                border: '1px solid rgba(217, 28, 210, 0.3)',
+                boxShadow: '0 0 10px rgba(217, 28, 210, 0.2)'
+              }}
+              data-testid="coach-back"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              {t('back')}
+            </button>
             {/* v9.5.8: Bouton déconnexion supprimé ici - existe en position fixed en haut à droite */}
           </div>
         </div>
