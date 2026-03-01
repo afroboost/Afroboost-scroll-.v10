@@ -499,12 +499,21 @@ const PartnersCarousel = ({ onPartnerClick, onSearch, maintenanceMode = false, i
         const seen = new Set();
         const data = rawData.filter(p => {
           const key = (p.email || p.id || '').toLowerCase();
-          if (seen.has(key)) return false;
+          if (seen.has(key)) {
+            console.warn(`[FLUX-REELS] ⚠️ DOUBLON DÉTECTÉ ET FILTRÉ: ${key}`);
+            return false;
+          }
           seen.add(key);
           return true;
         });
         
+        // v9.6.9: Log détaillé pour debug
         console.log(`[FLUX-REELS] ${rawData.length} partenaires reçus, ${data.length} uniques`);
+        if (rawData.length !== data.length) {
+          console.warn(`[FLUX-REELS] ❌ ${rawData.length - data.length} doublons supprimés`);
+        } else {
+          console.log('[FLUX-REELS] ✅ Aucun doublon détecté');
+        }
         
         setPartners(data);
         setFilteredPartners(data); // v9.5.3: Initialiser filteredPartners
