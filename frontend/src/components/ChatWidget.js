@@ -330,6 +330,106 @@ const MessageBubble = ({ msg, isUser, onParticipantClick, isCommunity, currentUs
   const htmlContent = parseMessageContent(messageText);
   const isOtherUser = isCommunity && msg.type === 'user' && msg.senderId && msg.senderId !== currentUserId;
   
+  // v10.3: RÉCAPITULATIF DE RÉSERVATION PREMIUM
+  if (msg.isReservationSummary && msg.reservationDetails) {
+    const details = msg.reservationDetails;
+    return (
+      <div
+        style={{
+          alignSelf: 'flex-start',
+          maxWidth: '320px',
+          width: '100%'
+        }}
+      >
+        <div style={{
+          fontSize: '10px',
+          fontWeight: '600',
+          marginBottom: '3px',
+          marginLeft: '4px',
+          color: '#A78BFA'
+        }}>
+          Coach Bassi
+        </div>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, rgba(20, 10, 30, 0.95) 0%, rgba(30, 15, 45, 0.95) 100%)',
+            border: '2px solid #D91CD2',
+            borderRadius: '16px',
+            padding: '16px',
+            boxShadow: '0 0 20px rgba(217, 28, 210, 0.3), 0 0 40px rgba(217, 28, 210, 0.1)'
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '24px' }}>✨</span>
+            <h4 style={{ 
+              color: '#D91CD2', 
+              fontSize: '14px', 
+              fontWeight: 'bold',
+              margin: '8px 0 4px 0',
+              textShadow: '0 0 10px rgba(217, 28, 210, 0.5)'
+            }}>
+              RÉSERVATION CONFIRMÉE
+            </h4>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Offre / Cours */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: '#D91CD2', fontSize: '14px' }}>📅</span>
+              <div>
+                <div style={{ color: '#A78BFA', fontSize: '10px', fontWeight: '600' }}>SÉANCE</div>
+                <div style={{ color: 'white', fontSize: '13px', fontWeight: '500' }}>{details.courseName}</div>
+                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}>{details.courseTime}</div>
+              </div>
+            </div>
+            
+            {/* Solde restant */}
+            {details.remaining && details.remaining !== 'N/A' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#D91CD2', fontSize: '14px' }}>🎟️</span>
+                <div>
+                  <div style={{ color: '#A78BFA', fontSize: '10px', fontWeight: '600' }}>SOLDE</div>
+                  <div style={{ color: 'white', fontSize: '13px', fontWeight: '500' }}>
+                    {details.remaining === 'illimite' ? 'Illimité' : `${details.remaining} séance(s) restante(s)`}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Validité */}
+            {details.expiry && details.expiry !== 'Non définie' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#D91CD2', fontSize: '14px' }}>⏰</span>
+                <div>
+                  <div style={{ color: '#A78BFA', fontSize: '10px', fontWeight: '600' }}>VALIDITÉ</div>
+                  <div style={{ color: 'white', fontSize: '13px', fontWeight: '500' }}>
+                    Jusqu'au {new Date(details.expiry).toLocaleDateString('fr-FR')}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Client */}
+            <div style={{ 
+              borderTop: '1px solid rgba(217, 28, 210, 0.3)', 
+              paddingTop: '10px',
+              marginTop: '4px'
+            }}>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>
+                Réservé par: <span style={{ color: 'white', fontWeight: '500' }}>{details.clientName}</span>
+              </div>
+              {details.promoCode && details.promoCode !== 'N/A' && (
+                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px' }}>
+                  Code: <span style={{ color: '#D91CD2', fontWeight: '500' }}>{details.promoCode}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   // === DÉTECTION AUTOMATIQUE DES MÉDIAS DANS LE TEXTE ===
   const detectMediaInText = (text) => {
     if (!text) return null;
