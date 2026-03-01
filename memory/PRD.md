@@ -1,5 +1,77 @@
 # Afroboost - Document de Référence Produit (PRD)
 
+## v9.6.9 - STABILITÉ ET FLUX UNIQUE VALIDÉS ✅ (01 Mars 2026)
+
+### STATUT: MISSION v9.6.9 COMPLÈTE - "STABILISATION FINALE ET ANTI-DOUBLONS"
+
+| Objectif | Statut |
+|----------|--------|
+| Logique redirection partenaire | ✅ |
+| Élimination doublons vidéo | ✅ |
+| Keys uniques stables | ✅ |
+| 3 icônes alignées (gap 16px) | ✅ |
+| paddingTop 5px (zéro vide) | ✅ |
+| Bouton Mon Dashboard dans chat | ✅ |
+
+### 1. DÉDUPLICATION RENFORCÉE
+
+**Backend (coach_routes.py L305-352):**
+```python
+seen_emails = set()
+
+# Bassi en premier avec ID unique
+partners_with_videos.append({"id": "bassi_main", ...})
+seen_emails.add(SUPER_ADMIN_EMAIL.lower())
+
+# Skip doublons
+for coach in coaches:
+    if coach_email in seen_emails:
+        continue
+    seen_emails.add(coach_email)
+    partner_data["id"] = f"coach_{uuid}"
+```
+
+**Frontend (PartnersCarousel.js L498-520):**
+```javascript
+const seen = new Set();
+const data = rawData.filter(p => {
+  const key = (p.email || p.id || '').toLowerCase();
+  if (seen.has(key)) {
+    console.warn(`⚠️ DOUBLON FILTRÉ: ${key}`);
+    return false;
+  }
+  seen.add(key);
+  return true;
+});
+```
+
+### 2. KEYS UNIQUES STABLES (L795-815)
+
+```jsx
+const uniqueKey = partner.id || partner.email || `partner_${index}`;
+<div key={uniqueKey} data-partner-key={uniqueKey}>
+```
+
+### 3. ICÔNES ALIGNÉES (L677-760)
+
+```jsx
+<div className="flex items-center gap-4">
+  <button data-testid="lang-selector-btn" />  {/* 🌐 */}
+  <button data-testid="search-btn" />         {/* 🔍 */}
+  <button data-testid="global-sound-btn" />   {/* 🔊 */}
+</div>
+```
+
+### Tests v9.6.9 - Iteration 123
+
+| Catégorie | Tests | Résultat |
+|-----------|-------|----------|
+| Backend | 13/13 | ✅ 100% |
+| Frontend | All | ✅ 100% |
+| Playwright | 5/5 | ✅ 100% |
+
+---
+
 ## v9.6.8 - DÉBLOCAGE PARTENAIRE & LOGIQUE DE VENTE ✅ (01 Mars 2026)
 
 ### STATUT: MISSION v9.6.8 COMPLÈTE - "LOGIQUE DE CONNEXION ET UI RÉPARÉES"
