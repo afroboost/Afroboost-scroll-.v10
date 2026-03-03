@@ -2159,16 +2159,99 @@ async def get_checkout_status(session_id: str):
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    """Webhook Stripe - Cree automatiquement le code d'acces apres paiement."""
+    """Webhook Stripe - Gère les paiements coach, crédits et clients."""
     try:
         body = await request.body()
         event = stripe.Event.construct_from(stripe.util.json.loads(body), stripe.api_key)
         if event.type == 'checkout.session.completed':
             session = event.data.object
             metadata = session.metadata or {}
+            payment_type = metadata.get("type", "client_payment")
             
-            # v8.9: Vérifier si c'est un paiement coach ou client
-            if metadata.get("type") == "coach_registration":
+            # v13.0: Achat de crédits par partenaire existant
+            if payment_type == "credit_purchase":
+                coach_email = metadata.get("customer_email", "").lower().strip()
+                credits = int(metadata.get("credits", 0))
+                pack_name = metadata.get("pack_name", "Pack Crédits")
+                price_chf = metadata.get("price_chf", "0")
+                
+                if coach_email and credits > 0:
+                    # Ajouter les crédits au compte du coach
+                    result = await db.coaches.update_one(
+                        {"email": coach_email},
+                        {"$inc": {"credits": credits}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+                    )
+                    
+                    # Récupérer le nouveau solde
+                    coach = await db.coaches.find_one({"email": coach_email})
+                    new_balance = coach.get("credits", 0) if coach else credits
+                    
+                    # v13.0: Logger la transaction dans credit_transactions
+                    transaction_doc = {
+                        "id": str(uuid.uuid4()),
+                        "type": "credit_purchase",
+                        "coach_email": coach_email,
+                        "coach_name": metadata.get("customer_name", ""),
+                        "pack_id": metadata.get("pack_id", ""),
+                        "pack_name": pack_name,
+                        "credits_added": credits,
+                        "balance_after": new_balance,
+                        "amount_chf": float(price_chf),
+                        "stripe_session_id": session.id,
+                        "stripe_customer_id": session.get("customer"),
+                        "payment_status": "completed",
+                        "created_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    await db.credit_transactions.insert_one(transaction_doc)
+                    
+                    logger.info(f"[WEBHOOK-CREDITS] {coach_email} +{credits} crédits (Pack: {pack_name}) -> Solde: {new_balance}")
+                    
+                    # Notification email au coach
+                    if RESEND_AVAILABLE and coach_email:
+                        try:
+                            html = f"""<div style="font-family:Arial;max-width:600px;margin:0 auto;background:#0a0a0a;">
+                            <div style="background:linear-gradient(135deg,#d91cd2,#8b5cf6);padding:24px;text-align:center;">
+                            <h1 style="color:white;margin:0;">Crédits ajoutés ! 🎉</h1></div>
+                            <div style="padding:24px;color:#fff;">
+                            <p>Bonjour {metadata.get('customer_name', 'Coach')},</p>
+                            <p>Votre achat de <strong>{pack_name}</strong> a été confirmé.</p>
+                            <div style="background:rgba(217,28,210,0.15);border:1px solid rgba(217,28,210,0.3);padding:20px;border-radius:8px;margin:20px 0;text-align:center;">
+                            <p style="margin:0;color:#22c55e;font-size:32px;font-weight:bold;">+{credits} crédits</p>
+                            <p style="margin:12px 0 0;color:#888;">Nouveau solde: <strong style="color:#d91cd2;">{new_balance} crédits</strong></p>
+                            </div>
+                            <p style="color:#888;font-size:12px;">Utilisez vos crédits pour les campagnes, conversations IA et codes promo.</p>
+                            </div></div>"""
+                            await asyncio.to_thread(resend.Emails.send, {
+                                "from": "Afroboost <notifications@afroboosteur.com>",
+                                "to": [coach_email],
+                                "subject": f"✅ +{credits} crédits ajoutés à votre compte",
+                                "html": html
+                            })
+                        except Exception as mail_err:
+                            logger.warning(f"[WEBHOOK-CREDITS] Email error: {mail_err}")
+                    
+                    # Notification Bassi
+                    if RESEND_AVAILABLE:
+                        try:
+                            bassi_html = f"""<div style="font-family:Arial;max-width:600px;margin:0 auto;background:#1a1a2e;padding:24px;">
+                            <h2 style="color:#22c55e;margin:0 0 16px;">💰 Vente de Pack Crédits !</h2>
+                            <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);padding:16px;border-radius:8px;">
+                            <p style="margin:0;color:#fff;"><strong>Coach:</strong> {coach_email}</p>
+                            <p style="margin:8px 0 0;color:#fff;"><strong>Pack:</strong> {pack_name}</p>
+                            <p style="margin:8px 0 0;color:#22c55e;"><strong>Montant:</strong> {price_chf} CHF</p>
+                            <p style="margin:8px 0 0;color:#d91cd2;"><strong>Crédits:</strong> +{credits}</p>
+                            </div></div>"""
+                            await asyncio.to_thread(resend.Emails.send, {
+                                "from": "Afroboost System <notifications@afroboosteur.com>",
+                                "to": [SUPER_ADMIN_EMAIL],
+                                "subject": f"💰 Vente: {pack_name} à {metadata.get('customer_name', coach_email)}",
+                                "html": bassi_html
+                            })
+                        except Exception as notify_err:
+                            logger.warning(f"[WEBHOOK-CREDITS] Notification Bassi error: {notify_err}")
+            
+            # v8.9: Paiement coach (inscription)
+            elif payment_type == "coach_registration":
                 # Paiement Coach - Créer le compte coach
                 coach_email = metadata.get("customer_email", "").lower().strip()
                 coach_name = metadata.get("customer_name", "")
@@ -2335,6 +2418,131 @@ async def create_coach_checkout(request: Request):
     except Exception as e:
         logger.error(f"[COACH-CHECKOUT] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# === v13.0: BOUTIQUE CRÉDITS - Achat de packs par partenaires existants ===
+@api_router.post("/stripe/create-credit-checkout")
+async def create_credit_checkout(request: Request):
+    """
+    v13.0: Crée une session Stripe Checkout pour l'achat de crédits par un partenaire existant.
+    L'argent va directement à Bassi (Super Admin).
+    """
+    try:
+        body = await request.json()
+        pack_id = body.get("pack_id")
+        caller_email = request.headers.get('X-User-Email', '').lower().strip()
+        
+        if not pack_id:
+            raise HTTPException(status_code=400, detail="pack_id requis")
+        
+        if not caller_email:
+            raise HTTPException(status_code=401, detail="Email utilisateur requis")
+        
+        # Super Admin ne paie jamais
+        if is_super_admin(caller_email):
+            raise HTTPException(status_code=400, detail="Le Super Admin a des crédits illimités")
+        
+        # Vérifier que le coach existe
+        coach = await db.coaches.find_one({"email": caller_email})
+        if not coach:
+            raise HTTPException(status_code=404, detail="Coach non trouvé")
+        
+        # Récupérer les infos du pack
+        pack = await db.coach_packs.find_one({"id": pack_id})
+        if not pack:
+            raise HTTPException(status_code=404, detail="Pack non trouvé")
+        
+        # Si pas de price_id Stripe, créer un prix à la volée
+        price_id = pack.get("stripe_price_id")
+        if not price_id:
+            # Créer le produit et le prix Stripe
+            product = stripe.Product.create(
+                name=pack.get("name", "Pack Crédits"),
+                description=f"{pack.get('credits', 0)} crédits Afroboost"
+            )
+            price = stripe.Price.create(
+                product=product.id,
+                unit_amount=int(float(pack.get("price", 0)) * 100),  # Convertir CHF en centimes
+                currency="chf"
+            )
+            price_id = price.id
+            # Sauvegarder les IDs Stripe dans le pack
+            await db.coach_packs.update_one(
+                {"id": pack_id},
+                {"$set": {"stripe_product_id": product.id, "stripe_price_id": price_id}}
+            )
+            logger.info(f"[CREDIT-CHECKOUT] Prix Stripe créé: {price_id} pour pack {pack_id}")
+        
+        # URL de redirection
+        referer = request.headers.get("Referer", "")
+        if referer:
+            from urllib.parse import urlparse
+            parsed = urlparse(referer)
+            frontend_url = f"{parsed.scheme}://{parsed.netloc}"
+        else:
+            frontend_url = "https://afroboost.com"
+        
+        # Créer la session Stripe Checkout
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price": price_id,
+                "quantity": 1
+            }],
+            mode="payment",
+            success_url=f"{frontend_url}?credit_success=true&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{frontend_url}?credit_cancelled=true",
+            customer_email=caller_email,
+            metadata={
+                "type": "credit_purchase",  # v13.0: Type pour le webhook
+                "pack_id": pack_id,
+                "pack_name": pack.get("name", ""),
+                "credits": str(pack.get("credits", 0)),
+                "price_chf": str(pack.get("price", 0)),
+                "customer_email": caller_email,
+                "customer_name": coach.get("name", "")
+            }
+        )
+        
+        logger.info(f"[CREDIT-CHECKOUT] Session créée pour {caller_email}, pack={pack.get('name')}, crédits={pack.get('credits')}")
+        return {"checkout_url": checkout_session.url, "session_id": checkout_session.id}
+        
+    except HTTPException:
+        raise
+    except stripe.error.StripeError as e:
+        logger.error(f"[CREDIT-CHECKOUT] Stripe error: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur Stripe: {str(e)}")
+    except Exception as e:
+        logger.error(f"[CREDIT-CHECKOUT] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# v13.0: Liste des packs crédits disponibles pour la boutique
+@api_router.get("/credit-packs")
+async def get_credit_packs():
+    """Retourne les packs de crédits visibles pour l'achat"""
+    packs = await db.coach_packs.find(
+        {"visible": {"$ne": False}},  # Packs visibles uniquement
+        {"_id": 0}
+    ).sort("price", 1).to_list(20)  # Trier par prix croissant
+    return packs
+
+# v13.0: Historique des transactions de crédits
+@api_router.get("/credit-transactions")
+async def get_credit_transactions(request: Request):
+    """Retourne l'historique des achats de crédits (Admin: tous, Coach: les siens)"""
+    user_email = request.headers.get('X-User-Email', '').lower().strip()
+    is_admin = is_super_admin(user_email)
+    
+    query = {} if is_admin else {"coach_email": user_email}
+    transactions = await db.credit_transactions.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    return transactions
+
+
 
 # --- Concept ---
 # v9.3.0: Isolation par coach_id - chaque coach a sa propre configuration

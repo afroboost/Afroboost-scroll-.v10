@@ -396,6 +396,11 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   const [stripeConnectStatus, setStripeConnectStatus] = useState(null);
   const [stripeConnectLoading, setStripeConnectLoading] = useState(false);
   
+  // === v13.0: BOUTIQUE CRÉDITS ===
+  const [creditPacks, setCreditPacks] = useState([]);
+  const [loadingPacks, setLoadingPacks] = useState(false);
+  const [purchasingPack, setPurchasingPack] = useState(null);
+  
   // === CRÉDITS COACH v8.9.7 ===
   // v9.2.3: Initialiser selon le rôle immédiatement pour éviter page blanche
   const [coachCredits, setCoachCredits] = useState(isSuperAdmin ? -1 : 0); // -1=illimité (Super Admin), 0=défaut
@@ -525,6 +530,44 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
       alert('Erreur lors de la connexion Stripe');
     } finally {
       setStripeConnectLoading(false);
+    }
+  };
+  
+  // === v13.0: BOUTIQUE CRÉDITS - Charger les packs disponibles ===
+  useEffect(() => {
+    const loadCreditPacks = async () => {
+      setLoadingPacks(true);
+      try {
+        const res = await axios.get(`${API}/credit-packs`);
+        setCreditPacks(res.data || []);
+      } catch (err) {
+        console.error('[BOUTIQUE] Erreur chargement packs:', err);
+      } finally {
+        setLoadingPacks(false);
+      }
+    };
+    if (!isSuperAdmin) {
+      loadCreditPacks();
+    }
+  }, [isSuperAdmin]);
+
+  // v13.0: Fonction pour acheter un pack de crédits
+  const handleBuyPack = async (pack) => {
+    if (!coachUser?.email || purchasingPack) return;
+    setPurchasingPack(pack.id);
+    try {
+      const res = await axios.post(`${API}/stripe/create-credit-checkout`, 
+        { pack_id: pack.id },
+        { headers: { 'X-User-Email': coachUser.email } }
+      );
+      if (res.data?.checkout_url) {
+        window.location.href = res.data.checkout_url;
+      }
+    } catch (err) {
+      console.error('[BOUTIQUE] Erreur achat:', err);
+      alert(err.response?.data?.detail || 'Erreur lors de l\'achat');
+    } finally {
+      setPurchasingPack(null);
     }
   };
   
@@ -3771,6 +3814,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
   // v9.1.3: DASHBOARD JUMEAU - Tous les coaches ont FULL ACCESS (même interface que Bassi)
   // L'indicateur requiresCredits est supprimé - seul le filtrage coach_id sépare les données
   // v9.5.8: Masquer "Campagnes" pour les partenaires - réservé au Super Admin
+  // v13.0: Ajout "Boutique" pour achat de crédits
   const baseTabs = [
     { id: "reservations", label: t('reservations') }, 
     { id: "concept", label: t('conceptVisual') },
@@ -3783,9 +3827,9 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     { id: "conversations", label: unreadCount > 0 ? `💬 Conversations (${unreadCount})` : "💬 Conversations" }
   ];
   
-  // Ajouter "Mon Stripe" pour les coachs partenaires (pas Bassi)
+  // v13.0: Ajouter "Boutique" et "Mon Stripe" pour les coachs partenaires (pas Bassi)
   const tabs = !isSuperAdmin 
-    ? [...baseTabs, { id: "stripe", label: "💳 Mon Stripe" }]
+    ? [...baseTabs, { id: "boutique", label: "💎 Boutique" }, { id: "stripe", label: "💳 Mon Stripe" }]
     : baseTabs;
 
   // v9.2.5: COMPOSANT DE SECOURS - Affiche le squelette du dashboard pendant le chargement
@@ -6392,6 +6436,102 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
           </SectionErrorBoundary>
         )}
         {/* [CONVERSATIONS_END] - Section extraite vers CRMSection.js (~940 lignes économisées) */}
+
+        {/* ========== v13.0: ONGLET BOUTIQUE CRÉDITS (Coachs uniquement) ========== */}
+        {tab === "boutique" && !isSuperAdmin && (
+          <div className="space-y-6" data-testid="boutique-tab">
+            {/* Header avec solde actuel - v12.1 Design Premium Sans Cadre */}
+            <div className="text-center py-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="text-white/50 text-sm mb-2">Votre solde actuel</div>
+              <div className="text-4xl font-bold" style={{ color: '#D91CD2' }}>
+                {coachCredits === -1 ? '∞' : coachCredits} crédits
+              </div>
+              {coachCredits !== -1 && coachCredits < 10 && (
+                <div className="text-yellow-400 text-sm mt-2">
+                  ⚠️ Solde faible - Rechargez pour continuer à utiliser les services
+                </div>
+              )}
+            </div>
+
+            {/* Liste des packs disponibles */}
+            <div>
+              <h2 className="text-xl font-bold text-white mb-6">Choisissez votre pack</h2>
+              
+              {loadingPacks ? (
+                <div className="text-center py-8 text-white/50">Chargement...</div>
+              ) : creditPacks.length === 0 ? (
+                <div className="text-center py-8 text-white/50">
+                  Aucun pack disponible pour le moment
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {creditPacks.map((pack, index) => (
+                    <div 
+                      key={pack.id}
+                      className="relative py-6 transition-all hover:scale-105"
+                      style={{ 
+                        borderBottom: '1px solid rgba(255,255,255,0.1)',
+                        borderLeft: index === 1 ? '2px solid #D91CD2' : 'none'
+                      }}
+                      data-testid={`pack-${pack.id}`}
+                    >
+                      {/* Badge populaire pour le 2ème pack */}
+                      {index === 1 && (
+                        <div 
+                          className="absolute -top-3 left-0 text-xs px-3 py-1 text-white"
+                          style={{ background: '#D91CD2', borderRadius: '4px' }}
+                        >
+                          ⭐ Populaire
+                        </div>
+                      )}
+                      
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-white mb-2">
+                          {pack.credits}
+                        </div>
+                        <div className="text-white/50 text-sm mb-4">crédits</div>
+                        
+                        <div className="text-2xl font-bold mb-1" style={{ color: '#D91CD2' }}>
+                          {pack.price} CHF
+                        </div>
+                        
+                        {pack.description && (
+                          <div className="text-white/40 text-xs mb-4">{pack.description}</div>
+                        )}
+                        
+                        <button
+                          onClick={() => handleBuyPack(pack)}
+                          disabled={purchasingPack === pack.id}
+                          className="w-full py-3 text-white font-medium transition-all hover:opacity-80 disabled:opacity-50"
+                          style={{ 
+                            background: purchasingPack === pack.id 
+                              ? 'rgba(255,255,255,0.1)' 
+                              : 'linear-gradient(135deg, #D91CD2, #8b5cf6)',
+                            borderRadius: '8px'
+                          }}
+                          data-testid={`buy-pack-${pack.id}`}
+                        >
+                          {purchasingPack === pack.id ? 'Redirection...' : 'Acheter'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Info paiement */}
+            <div className="text-center py-6" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="flex items-center justify-center gap-4 text-white/40 text-xs">
+                <span>💳 Paiement sécurisé</span>
+                <span>•</span>
+                <span>⚡ Crédits instantanés</span>
+                <span>•</span>
+                <span>🔒 Stripe</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ========== ONGLET MON STRIPE v8.9.5 (Coachs uniquement) ========== */}
         {tab === "stripe" && !isSuperAdmin && (
