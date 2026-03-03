@@ -3,115 +3,100 @@ The user wants to transform the existing Afroboost application into a multi-part
 
 **PRODUCT REQUIREMENTS (Summary of Missions):**
 The development has been driven by a series of missions, each with specific UI/UX and logic goals. The key themes are:
-1.  **UI/UX Perfection:** Achieve a zero black space, immersive, Reels-style interface. This includes specific icon placements, component styling (violet glow #D91CD2), and responsive behavior on mobile (Samsung Ultra 24).
-2.  **Robust Navigation & Logic:** Implement a unique showcase logic where clicking a partner's own video doesn't redirect. Ensure a one-click, flash-free login experience for existing partners ().
-3.  **Account Uniqueness:** Enforce a one-account-per-email policy, preventing duplicate accounts.
-4.  **Feature Implementation & Fixes:**
-    *   Fix partner login redirection loops.
-    *   Eliminate duplicate videos in the feed.
-    *   Implement chat message persistence using .
-    *   Add a Glow Violet effect to the Like button and display the like count.
-    *   Create a Premium reservation summary card in the chat.
-    *   Refactor the partner dashboard from large buttons to a minimalist grid of icon-based cards.
-    *   Fix mobile scrolling issues in the dashboard.
-5.  **Security/Infra Audits:** The user requested read-only audits to identify the backend hosting platform and check for security vulnerabilities (hardcoded secrets). The audits concluded the backend runs only in a temporary preview environment and is not deployed for production, posing a high risk.
+1.  **UI/UX Perfection:** Achieve a minimalist, zero black space, immersive, Reels-style interface with a premium feel (deep black backgrounds, frameless elements, violet glow accents).
+2.  **Robust Navigation & Logic:** Implement dynamic UI logic based on user roles and the number of active partners. For example, the Reels-style vertical scroll is only active if more than one partner exists. The Réserver button's behavior changes based on context (scroll on the page vs. navigate).
+3.  **Super Admin Controls:** Grant the Super Admin (Bassi) the ability to dynamically control the application, including setting the credit cost for various partner services (Campaigns, AI Chat, Promo Codes).
+4.  **Monetization & Partner Lifecycle:**
+    *   Implement a credit system where partners purchase credits to use premium services.
+    *   Integrate Stripe for selling credit packs directly to partners, with funds going to the Super Admin's account.
+    *   Implement a webhook to automatically add credits to a partner's account upon successful payment.
+    *   Lock premium services if a partner's credit balance is insufficient.
+5.  **PWA & Audits:** Ensure the application is installable as a PWA for a fullscreen mobile experience and conduct audits to ensure core functionalities (prompt isolation, notifications) are working as expected.
 
 **User's preferred language**: français
 
 **what currently exists?**
-The application is a full-stack platform with a React frontend and FastAPI backend. The UI has been extensively refactored to mimic the Instagram Reels interface, featuring a full-screen vertical video feed with overlaid controls.
+The application is a full-stack platform with a React frontend and a FastAPI backend. It features a sophisticated UI/UX that has been progressively refined to meet the user's premium minimalist standard.
 
-Key functionalities stabilized:
--   **Reels-style UI:** The main feed and partner showcase pages use a full-screen video player with  to handle different aspect ratios. UI elements (profile, like/share buttons, description) are overlaid on the video.
--   **Login & Auth:** A streamlined login flow correctly identifies Super Admins and existing partners, redirecting them immediately to their dashboard to prevent UI flashes or incorrect page loads.
--   **Dashboard UI:** The partner dashboard has been refactored from a list of large buttons to a responsive, scrollable grid of minimalist, icon-based cards.
--   **Chat Persistence:** The chat widget now uses  to remember user details (name, WhatsApp) between sessions. Fallback logic has been added to prevent empty message bubbles.
--   **Backend Logic:** Video de-duplication is implemented on the backend. APIs for partner status checks are in place.
+Key functionalities implemented and stabilized:
+-   **Reels-style UI:** A full-screen, vertical video feed that dynamically adapts its behavior (e.g., enabling/disabling scroll) based on the number of active partners. It is now full-width, with no black borders.
+-   **Partner Dashboard:** A heavily refactored dashboard that serves as the control center for both partners and the Super Admin. It uses a zero-frame design with icon-based navigation.
+-   **Credit & Monetization System:**
+    *   Partners have a credit balance that is consumed when using premium services.
+    *   The Super Admin can set the credit cost for each service (Campaigns, AI Chat, Promo Codes) from their dashboard.
+    *   A Boutique section allows partners to purchase credit packs via Stripe.
+    *   A Stripe webhook () automatically updates a partner's credit balance upon successful purchase.
+-   **Service Locking:** Premium features in the partner dashboard (e.g., Campaigns, AI Chat) are now gated. Access is blocked with a Crédits insuffisants message if the partner's balance is below the required amount, with a button to redirect to the Boutique.
+-   **PWA:** The application is configured with a manifest and service worker to be installable on mobile devices for a fullscreen experience.
 
 **Last working item**:
-    - Last item agent was working: **Mission v10.9: Cleaning up the UI and targeting the 'Réserver' button.** The goal was to declutter the video overlay on the partner showcase page () by removing an extra contact icon and a central logo. The Réserver button was to be redesigned as a frameless, text-and-icon element positioned at the bottom-right of the video. The agent implemented the changes, but the testing agent found a CSS bug causing the button to be misplaced. The agent applied a fix for this bug.
-    - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use?  to run a full regression test, validating the CSS fix for the Réserver button position and ensuring no new issues were introduced.
+    - Last item agent was working: **Mission v13.1: Verrouillage Services & Sécurité Crédits.** The agent implemented a credit-based access control system in . This involved fetching service prices set by the admin, checking the partner's credit balance, and conditionally rendering either the service UI or a  component that blocks access and prompts the user to buy more credits.
+    - Status: USER VERIFICATION PENDING
+    - Agent Testing Done: Y
+    - Which testing method agent to use? Manual testing by the user. The user should log in as a partner with insufficient credits and verify that access to the Campagne, Conversation IA, and Code Promo tabs is blocked and that they are prompted to go to the Boutique. They should also verify that the Super Admin has unrestricted access.
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1:  (P0) Implement Stripe Connect for partner coaches.
+  - Issue 1:  (P0) Implement Stripe Connect for partner payouts.
   
   Issues Detail:
   - Issue 1: 
-     - **Description**: This is a major pending feature from the original product requirements. Partners need the ability to connect their Stripe accounts to receive payments directly. The UI tab exists, but the onboarding and payment processing flow is not implemented.
+     - **Description**: This is a major pending feature from the original product requirements. While Stripe is now used for the Super Admin to *sell credits*, the functionality for partners to *receive payments* for their own services is not implemented. The UI tab for Stripe Connect exists in the dashboard, but the backend logic and onboarding flow are missing.
      - **Attempted fixes**: None.
      - **Next debug checklist**:
-       - Connect the Connecter mon Stripe button in  to a new backend API.
-       - Use the  agent to get the correct Stripe Connect implementation plan.
-       - Create backend APIs using the Stripe SDK to handle the Stripe Connect onboarding flow (Account Links API).
-       - Implement the redirect flow to and from Stripe's onboarding page.
-       - Modify Stripe webhooks in  to handle events from connected accounts.
-     - **Why fix this issue and what will be achieved with the fix?**: This is a core requirement for the SaaS model, enabling partners to manage their own revenue.
+       - Use the  agent to get the correct implementation plan for **Stripe Connect**.
+       - Create backend APIs to handle the Stripe Connect onboarding flow (e.g., using the Account Links API).
+       - Implement the frontend logic in  to initiate onboarding when the Connecter mon Stripe button is clicked.
+       - Handle the redirect flow to and from Stripe's hosted onboarding page.
+       - Potentially modify Stripe webhooks in  to handle events related to connected accounts (e.g., account updates, payout status).
+     - **Why fix this issue and what will be achieved with the fix?**: This is a core requirement for the SaaS platform to be truly multi-partner, enabling coaches to manage their own revenue.
      - **Status**:  NOT STARTED
      - **Is recurring issue?** N
      - **Should Test frontend/backend/both after fix?** Both
      - **Blocked on other issue**: None
 
 **In progress Task List**:
-  - Task 1:  (P0) Validate Mission v10.9 Fix
+  - Task 1:  (P1) Continue modularizing .
   - Task 2:  (P1) Continue modularizing .
-  - Task 3:  (P1) Continue modularizing .
-  - Task 4:  (P1) Complete implementation of the partner credit system.
 
  Task Detail:
   - Task 1: 
-     - **Where to resume**: The agent has just applied a fix to  to correct the position of the Réserver button. The next step is to run the  to confirm the fix and ensure no regressions occurred.
-     - **What will be achieved with this?**: Complete and validate Mission v10.9.
-     - **Status**:  IN PROGRESS
-     - **Should Test frontend/backend/both after fix?** Frontend
-     - **Blocked on something**: None
-  - Task 2: 
-     - **Where to resume**:  remains a large monolith. The next step is to extract route groups (e.g., Stripe, AI, Campaigns) into their own files under a  directory.
+     - **Where to resume**:  has had some routes extracted (promo, reservation), but it remains a large monolith. The next step is to continue extracting logical groups of endpoints (e.g., Stripe, AI, Campaigns, user management) into their own files under a  directory.
      - **What will be achieved with this?**: Improving code organization, maintainability, and stability.
      - **Status**:  IN PROGRESS
      - **Should Test frontend/backend/both after fix?** Backend
      - **Blocked on something**: None
-  - Task 3: 
-     - **Where to resume**: While significantly improved,  is still large. The tabs Réservations, Profil, and Offres can be extracted into their own components under a  directory.
-     - **What will be achieved with this?**: Reducing the complexity of the main dashboard component.
+  - Task 2: 
+     - **Where to resume**:  is now over 7,000 lines long. It is a critical bottleneck for frontend development. The logic for each tab (Boutique, Réservations, Profil, Tarifs Services, etc.) must be extracted into its own dedicated component under a  directory.
+     - **What will be achieved with this?**: Drastically reducing the complexity of the main dashboard component, improving performance and making future changes manageable.
      - **Status**:  IN PROGRESS
      - **Should Test frontend/backend/both after fix?** Frontend
-     - **Blocked on something**: None
-  - Task 4: 
-     - **Where to resume**: Mission v9.5.8 requested credit deduction for Chat and Création Promo. The agent implemented it for promo codes but not for Chat actions. The  hook needs to be integrated with the chat functionalities.
-     - **What will be achieved with this?**: Completes the initial scope of the credit consumption feature.
-     - **Status**:  IN PROGRESS
-     - **Should Test frontend/backend/both after fix?** Both
      - **Blocked on something**: None
 
 **Upcoming and Future Tasks**
     Upcoming Tasks:
     - **(P0)** Deploy the backend to a permanent production host (e.g., Railway, Render). The audit revealed it only runs in a temporary preview environment.
-    - **(P0)** Implement Stripe Connect (see Issue #1).
-    - **(P1)** Complete Partner Credit System (see Task #4).
+    - **(P0)** Implement Stripe Connect for partner payouts (see Issue #1).
     
     Future Tasks:
     - Continue progressive refactoring of  and .
     - Document all environment variables required for production deployment.
+    - Complete the partner credit system by implementing deduction for Chat actions, as originally requested in v9.5.8.
 
 **Completed work in this session**
-- **Security & Hosting Audits**: Performed read-only audits that identified the backend is not deployed for production and confirmed no secrets are hardcoded in the repository.
-- **v10.9 (partial):** Implemented UI cleanup on the partner showcase page by removing redundant elements and redesigning the Réserver button.
-- **v10.7:** Refactored dashboard action buttons into compact, square, icon-based cards (e.g., ✉️ for Chat, 📅 for Reservations).
-- **v10.6:** Overhauled the partner dashboard layout to a minimalist 2-column grid of cards and fixed major mobile scrolling issues.
-- **v10.5:** Harmonized the style and size of all buttons in the partner dashboard and fixed the mobile layout of the Maintenance toggle.
-- **v10.4:** Fixed chat message persistence to eliminate empty bubbles on reload and began harmonizing dashboard button styles.
-- **v10.3:** Implemented a Glow Violet effect on the Like button, added chat memory using , and created a reservation summary card.
-- **v10.2:** Fixed video rendering for 16:9 formats using  to ensure an immersive, full-screen experience.
-- **v10.0:** Major UI overhaul of  to an Instagram Reels style with overlaid controls.
-- **v9.7.2:** Implemented unique showcase logic (no redirection on self-click) and removed a duplicate Sound icon.
-- **v9.6.9:** Finalized video de-duplication logic and confirmed UI stability.
-- **v9.6.8:** Fixed partner login redirection and aligned header icons.
+- **v13.1:** Implemented a service lock (CreditsGate) for partners with insufficient credits, blocking access to premium features and directing them to the Boutique.
+- **v13.0:** Integrated Stripe for selling credit packs to partners, including a Boutique UI, backend checkout session creation, and a webhook to automatically add credits on successful payment.
+- **v12.1:** Implemented Super Admin controls to dynamically set the credit price of services (Campaigns, AI Chat, etc.) and further refined the zero-frame premium UI design.
+- **v11.9:** Fixed the video feed to be full-width, removing black bars on the sides by adjusting CSS padding on the main app container.
+- **v11.8:** Fixed a critical bug where the Réserver button did not scroll down on the Super Admin's video in the main feed.
+- **v11.7:** Implemented dynamic Reels feed logic (scroll only if >1 partner), disabled double-click on Super Admin videos, and made the Réserver button scroll down on the main page.
+- **v11.5:** Added the reservation date and time to the booking confirmation message in the chat widget.
+- **v11.4:** Repaired the subscription code system, creating a  collection, implementing credit deduction for reservations, and adding a credit balance display in the chat.
+- **v11.2:** Audited and validated prompt isolation for AI chats, PWA functionality, and notification systems.
 
 **Earlier issues found/mentioned but not fixed**
    - **Issue 1**: A potential issue with the  hook in the partner dashboard's color customization feature was mentioned in an early handoff but has not been investigated or addressed.
+   - **Issue 2**: The original requirement (v9.5.8) to deduct credits for Chat actions (i.e., conversations with clients) has not been fully implemented. Credit deduction exists for generating promo codes and sending campaigns, but not for the chat service itself.
 
 **Known issue recurrence from previous fork**
   - None.
@@ -120,62 +105,72 @@ Key functionalities stabilized:
 
 
 **Key Technical Concepts**
-- **Reels UI Implementation:** Heavy use of absolute positioning, CSS transforms (), , and flexbox to create an Instagram Reels-like video overlay UI in .
-- **UI Harmonization:** Extensive work to create a consistent design language using a minimalist grid layout, icon-based cards, and a specific color palette (violet glow #D91CD2 on a black background).
-- **Conditional Logic:** The UI relies heavily on conditional rendering based on user role () and context (e.g.,  to prevent self-redirection).
-- **State Persistence:** Using  in  to remember user information across sessions.
-- **CSS  & /:** Used extensively to create clean, responsive, and aligned layouts in the dashboard and headers.
+- **Monolithic Components:** The application relies on two very large monolithic files:  for almost all API logic and  for the entire authenticated user experience.
+- **Dynamic Service Pricing:** The Super Admin can set prices for services, which are stored in a  collection in MongoDB. The frontend fetches these prices to conditionally lock features.
+- **Stripe Integration for Credit Sales:**
+    - A checkout session is created via a backend API ().
+    - The backend listens for a  webhook to confirm payment.
+    - Upon confirmation, the partner's credit balance is updated in the  collection, and a record is created in the  collection.
+- **Conditional UI Rendering:** The UI heavily relies on conditional rendering based on user role (, ) and state (credit balance, number of active partners).
+- **CSS for Premium UI:** Extensive use of  backgrounds, , and specific color variables () to achieve the zero-frame aesthetic.
 
 **key DB schema**
   - **coaches**: 
   - **concept**: 
+  - **platform_settings**: 
+  - **subscriptions**: 
+  - **credit_transactions**: 
+  - **coach_packs**: 
 
 **changes in tech stack**
   - No changes.
 
 **All files of reference**
-- ****: Heavily refactored to create the Instagram Reels UI.
-- ****: Heavily refactored from a list of buttons to a minimalist grid of cards, and scroll behavior was fixed.
-- ****: Modified in the last step to clean up the UI and redesign the Réserver button. Contains the CSS bug that was just fixed.
-- ****: Modified to add  persistence and the reservation summary card.
-- ****: Modified to adjust main layout padding and pass props for the Reels UI.
-- ****: Modified to add the glow effect and other global styles.
-- ****: Minor modifications for de-duplication logic. Still needs major refactoring.
+- ****: **CRITICAL**. Heavily modified in every recent mission. Contains the logic for the partner/admin dashboard, including the new Boutique, service price controls, and the credit-based service locking (). It desperately needs refactoring.
+- ****: **CRITICAL**. Modified to add endpoints for service prices, Stripe checkout for credits, credit packs, and transaction history. Also updated the Stripe webhook handler. Still needs major refactoring.
+- ****: Modified to remove global padding, enabling the full-width video feed.
+- ****: Modified to fix the Réserver button scroll behavior and implement dynamic scroll logic based on the number of partners.
 
 **Areas that need refactoring**:
-- ****: **CRITICAL**. Still a large monolith. Extracting routes is a high-priority task for maintainability.
-- ****: **HIGH**. While the layout has been improved, the component itself is still very large and manages a lot of state and logic that could be broken down.
+- ****: **CRITICAL**. This file is over 7,000 lines and is unmaintainable. It must be broken down into smaller components for each dashboard tab.
+- ****: **CRITICAL**. Still a large monolith despite some routes being extracted. The remaining API logic needs to be organized into separate route files for better maintainability.
 
 **key api endpoints**
-- No new critical endpoints were added. The focus has been on frontend implementation and bug fixing. Existing endpoints like  and  are stable.
+- : (GET/POST) Manages global settings, including service prices.
+- : (GET) Public endpoint to fetch current service prices.
+- : (POST) Creates a Stripe checkout session for purchasing credit packs.
+- : (POST) Listens for Stripe events, specifically .
+- : (GET) Lists available credit packs for the Boutique.
+- : (GET) Fetches a partner's transaction history.
 
 **Critical Info for New Agent**
-- **Production Environment Risk:** The backend is **NOT** deployed for production. It runs exclusively in a temporary Emergent preview environment. This is a critical risk for a site with active users. The user is aware of this.
-- **UI is King:** The user has extremely specific requirements for the UI, focusing on a minimalist, premium, Reels-style aesthetic. Pay close attention to screenshots and explicit instructions regarding spacing, colors (violet glow), and component design.
-- **Start by Validating:** Your immediate first task is to run the testing agent to confirm the CSS fix for Mission v10.9 on . Do not proceed until this is validated.
-- **Distinguish  from :** The user makes requests for both the main Reels feed and the individual partner showcase page.  is for the main feed, while  is the partner's dedicated page. The last set of changes was for .
+- **Production Environment Risk:** The backend is **NOT** deployed for production. It runs exclusively in a temporary Emergent preview environment. This is a critical risk.
+- **Refactoring is Urgent:** The two main files,  and , are extremely large and complex. Any new feature work will be difficult and risky without first breaking these down. Prioritize refactoring.
+- **Stripe vs. Stripe Connect:** The current Stripe integration is for the Super Admin to **sell credits**. The request for partners to **receive payments** requires **Stripe Connect**, which is a separate, unimplemented feature.
+- **Credit System Logic:** The credit system is now a core part of the application. Understand how prices are set by the admin, how services are locked, and how credits are added via the Stripe webhook.
+- **UI is King:** The user has extremely specific requirements for the premium minimalist UI. Avoid adding any borders, backgrounds, or frames to elements unless explicitly requested.
 
 **documents and test reports created in this job**
   -  (updated after each mission)
-  - Multiple test reports in . The last successful one was for v10.7. The run for v10.9 failed, was fixed, and now needs re-testing.
+  -  (Latest test report for mission v13.1)
 
 **Last 10 User Messages and any pending HUMAN messages** 
-- **v10.9 (In Progress):** Clean up the partner showcase UI, remove extra icons, and redesign the Réserver button to be frameless and positioned at the bottom-right.
-- **v10.7 (Completed):** Replaced large dashboard buttons with compact, icon-based cards (Envelope for chat, Calendar for reservations).
-- **v10.6 (Completed):** Refactored the dashboard to a minimalist grid of cards and fixed critical mobile scrolling issues.
-- **v10.5 (Completed):** Harmonized all dashboard buttons to be the same size/style and fixed the mobile layout for the maintenance toggle.
-- **v10.4 (Completed):** Fixed chat persistence to eliminate empty message bubbles on reload.
-- **v10.3 (Completed):** Added a Glow Violet effect to the Like button, implemented chat memory via .
-- **v10.2 (Completed):** Fixed 16:9 videos to be full-screen ().
-- **Audit Request (Completed):** Requested a read-only audit to identify the backend hosting environment.
-- **Audit Request (Completed):** Requested a read-only security audit to check for hardcoded secrets.
-- **v9.6.9 (Completed):** Final validation mission for de-duplication and UI stability.
+- **v13.1 (Completed):** Lock premium services if a partner has insufficient credits.
+- **v13.0 (Completed):** Implement Stripe to sell credit packs to partners.
+- **v12.1 (Completed):** Allow Super Admin to set prices for services; refine the zero-frame premium design.
+- **v11.9 (Completed):** Make the main video feed full-width, removing side borders.
+- **v11.8 (Completed):** Fixed the Réserver button scroll logic on the Super Admin's video.
+- **v11.7 (Completed):** Implemented dynamic Reels feed (scroll only with >1 partner).
+- **v11.5 (Completed):** Added date/time to the booking confirmation in the chat.
+- **v11.4 (Completed):** Fixed the subscription code system and implemented credit deduction for reservations.
+- **v11.2 (Completed):** Audited and validated prompt isolation, PWA, and notifications.
+- **v10.9 (from previous fork):** Cleaned up UI and fixed the Réserver button style.
 
 **Project Health Check:**
-- **Brittle/Mocked:** The backend is effectively mocked as it runs only in a non-persistent preview environment. This is a **CRITICAL** risk. The frontend is functionally advanced but has significant tech debt in large components () and a highly specific UI that can be brittle.
+- **Brittle/Mocked:** The backend is effectively mocked as it runs only in a non-persistent preview environment. This is a **CRITICAL** risk. The frontend has massive tech debt in , making it brittle.
 
 **3rd Party Integrations**
-- **Stripe:** Integrated for payments, but Stripe Connect for partner payouts is a major pending task.
+- **Stripe:** Used for processing payments for credit pack sales. The funds go to the Super Admin.
 - **Resend:** Used for emails.
 - **Emergent-managed Google Auth:** Used for user login.
 
@@ -183,11 +178,11 @@ Key functionalities stabilized:
   - Testing agent used after significant changes: YES
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: None.
-  - Known regressions: A CSS bug was introduced and fixed in the last step but needs verification.
+  - Known regressions: None.
 
 **Credentials to test flow:**
 - **Super Admin Emails:** , 
 - **Access Method:** Use Google Login. The Super Admin login modal can be accessed by triple-clicking the © Afroboost 2026 footer text.
 
 **What agent forgot to execute**
-- **Credit Deduction for Chat:** The original request in v9.5.8 to deduct credits for chat actions was never implemented. It was done for promo codes, but not for chat. This remains a pending task.</analysis>
+- **Credit Deduction for Chat:** The original request in v9.5.8 to deduct credits for chat actions was only partially addressed. While credit deduction for creating promo codes and campaigns is implemented, the specific deduction for using the AI conversation feature with a client still needs to be implemented and verified.</analysis>

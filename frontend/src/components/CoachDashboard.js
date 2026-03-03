@@ -26,6 +26,8 @@ import CampaignManager from "./coach/CampaignManager"; // Import Campaign Manage
 import CRMSection from "./coach/CRMSection"; // v9.2.0 Import CRM Section
 import { parseMediaUrl, getMediaThumbnail } from "../services/MediaParser"; // Media Parser
 import SuperAdminPanel from "./SuperAdminPanel"; // v8.9 Super Admin Panel
+// v13.2: Composants extraits pour alléger CoachDashboard
+import { CreditsGate, CreditBoutique, StripeConnectTab } from "./dashboard";
 
 // v9.2.1: ErrorBoundary pour isoler les erreurs de composants
 class SectionErrorBoundary extends Component {
@@ -5758,29 +5760,15 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         {/* Promo Codes Tab with Beneficiary Dropdown */}
         {tab === "codes" && (
           <div className="card-gradient rounded-xl p-4 sm:p-6">
-            {/* v13.1: Écran de blocage si crédits insuffisants */}
+            {/* v13.2: Utilise le composant CreditsGate extrait */}
             {!hasCreditsFor('promo_code') ? (
-              <div className="text-center py-16" data-testid="credits-lock-codes">
-                <div className="text-6xl mb-6">🔒</div>
-                <h2 className="text-2xl font-bold text-white mb-4">Crédits insuffisants</h2>
-                <p className="text-white/50 mb-2">
-                  Ce service premium nécessite <span style={{ color: '#D91CD2', fontWeight: 'bold' }}>{servicePrices.promo_code} crédit(s)</span>
-                </p>
-                <p className="text-white/30 text-sm mb-8">
-                  Votre solde actuel: <span className="text-red-400 font-bold">{coachCredits}</span> crédits
-                </p>
-                <button
-                  onClick={() => setTab('boutique')}
-                  className="px-8 py-3 text-white font-medium transition-all hover:opacity-80"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)',
-                    borderRadius: '8px'
-                  }}
-                  data-testid="go-to-boutique-codes"
-                >
-                  💎 Recharger mes crédits
-                </button>
-              </div>
+              <CreditsGate 
+                serviceName="codes"
+                requiredCredits={servicePrices.promo_code}
+                currentCredits={coachCredits}
+                onGoToBoutique={() => setTab('boutique')}
+                testId="credits-lock-codes"
+              />
             ) : (
             <>
             {/* En-tête avec recherche */}
@@ -6307,30 +6295,16 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
 
         {/* === CAMPAIGNS TAB === */}
         {/* [CAMPAGNE_START] - Section extraite vers CampaignManager.js */}
-        {/* v13.1: Verrouillage crédits pour campagnes (déjà masqué pour partenaires, mais sécurité supplémentaire) */}
+        {/* v13.2: Verrouillage crédits avec composant CreditsGate */}
         {tab === "campaigns" && !hasCreditsFor('campaign') ? (
           <div className="card-gradient rounded-xl p-4 sm:p-6">
-            <div className="text-center py-16" data-testid="credits-lock-campaigns">
-              <div className="text-6xl mb-6">🔒</div>
-              <h2 className="text-2xl font-bold text-white mb-4">Crédits insuffisants</h2>
-              <p className="text-white/50 mb-2">
-                Ce service premium nécessite <span style={{ color: '#D91CD2', fontWeight: 'bold' }}>{servicePrices.campaign} crédit(s)</span>
-              </p>
-              <p className="text-white/30 text-sm mb-8">
-                Votre solde actuel: <span className="text-red-400 font-bold">{coachCredits}</span> crédits
-              </p>
-              <button
-                onClick={() => setTab('boutique')}
-                className="px-8 py-3 text-white font-medium transition-all hover:opacity-80"
-                style={{ 
-                  background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)',
-                  borderRadius: '8px'
-                }}
-                data-testid="go-to-boutique-campaigns"
-              >
-                💎 Recharger mes crédits
-              </button>
-            </div>
+            <CreditsGate 
+              serviceName="campaigns"
+              requiredCredits={servicePrices.campaign}
+              currentCredits={coachCredits}
+              onGoToBoutique={() => setTab('boutique')}
+              testId="credits-lock-campaigns"
+            />
           </div>
         ) : tab === "campaigns" && (
           <CampaignManager
@@ -6465,30 +6439,16 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
 
 
         {/* ========== ONGLET CONVERSATIONS v9.2.0 - Extrait vers CRMSection.js ========== */}
-        {/* v13.1: Verrouillage crédits pour conversations IA */}
+        {/* v13.2: Verrouillage crédits avec composant CreditsGate */}
         {tab === "conversations" && !hasCreditsFor('ai_conversation') ? (
           <div className="card-gradient rounded-xl p-4 sm:p-6">
-            <div className="text-center py-16" data-testid="credits-lock-conversations">
-              <div className="text-6xl mb-6">🔒</div>
-              <h2 className="text-2xl font-bold text-white mb-4">Crédits insuffisants</h2>
-              <p className="text-white/50 mb-2">
-                Ce service premium nécessite <span style={{ color: '#D91CD2', fontWeight: 'bold' }}>{servicePrices.ai_conversation} crédit(s)</span>
-              </p>
-              <p className="text-white/30 text-sm mb-8">
-                Votre solde actuel: <span className="text-red-400 font-bold">{coachCredits}</span> crédits
-              </p>
-              <button
-                onClick={() => setTab('boutique')}
-                className="px-8 py-3 text-white font-medium transition-all hover:opacity-80"
-                style={{ 
-                  background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)',
-                  borderRadius: '8px'
-                }}
-                data-testid="go-to-boutique-conversations"
-              >
-                💎 Recharger mes crédits
-              </button>
-            </div>
+            <CreditsGate 
+              serviceName="conversations"
+              requiredCredits={servicePrices.ai_conversation}
+              currentCredits={coachCredits}
+              onGoToBoutique={() => setTab('boutique')}
+              testId="credits-lock-conversations"
+            />
           </div>
         ) : tab === "conversations" && (
           <SectionErrorBoundary sectionName="Conversations">
@@ -6547,208 +6507,27 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
         )}
         {/* [CONVERSATIONS_END] - Section extraite vers CRMSection.js (~940 lignes économisées) */}
 
-        {/* ========== v13.0: ONGLET BOUTIQUE CRÉDITS (Coachs uniquement) ========== */}
+        {/* ========== v13.2: ONGLET BOUTIQUE CRÉDITS - Composant extrait ========== */}
         {tab === "boutique" && !isSuperAdmin && (
-          <div className="space-y-6" data-testid="boutique-tab">
-            {/* Header avec solde actuel - v12.1 Design Premium Sans Cadre */}
-            <div className="text-center py-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="text-white/50 text-sm mb-2">Votre solde actuel</div>
-              <div className="text-4xl font-bold" style={{ color: '#D91CD2' }}>
-                {coachCredits === -1 ? '∞' : coachCredits} crédits
-              </div>
-              {coachCredits !== -1 && coachCredits < 10 && (
-                <div className="text-yellow-400 text-sm mt-2">
-                  ⚠️ Solde faible - Rechargez pour continuer à utiliser les services
-                </div>
-              )}
-            </div>
-
-            {/* Liste des packs disponibles */}
-            <div>
-              <h2 className="text-xl font-bold text-white mb-6">Choisissez votre pack</h2>
-              
-              {loadingPacks ? (
-                <div className="text-center py-8 text-white/50">Chargement...</div>
-              ) : creditPacks.length === 0 ? (
-                <div className="text-center py-8 text-white/50">
-                  Aucun pack disponible pour le moment
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {creditPacks.map((pack, index) => (
-                    <div 
-                      key={pack.id}
-                      className="relative py-6 transition-all hover:scale-105"
-                      style={{ 
-                        borderBottom: '1px solid rgba(255,255,255,0.1)',
-                        borderLeft: index === 1 ? '2px solid #D91CD2' : 'none'
-                      }}
-                      data-testid={`pack-${pack.id}`}
-                    >
-                      {/* Badge populaire pour le 2ème pack */}
-                      {index === 1 && (
-                        <div 
-                          className="absolute -top-3 left-0 text-xs px-3 py-1 text-white"
-                          style={{ background: '#D91CD2', borderRadius: '4px' }}
-                        >
-                          ⭐ Populaire
-                        </div>
-                      )}
-                      
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-white mb-2">
-                          {pack.credits}
-                        </div>
-                        <div className="text-white/50 text-sm mb-4">crédits</div>
-                        
-                        <div className="text-2xl font-bold mb-1" style={{ color: '#D91CD2' }}>
-                          {pack.price} CHF
-                        </div>
-                        
-                        {pack.description && (
-                          <div className="text-white/40 text-xs mb-4">{pack.description}</div>
-                        )}
-                        
-                        <button
-                          onClick={() => handleBuyPack(pack)}
-                          disabled={purchasingPack === pack.id}
-                          className="w-full py-3 text-white font-medium transition-all hover:opacity-80 disabled:opacity-50"
-                          style={{ 
-                            background: purchasingPack === pack.id 
-                              ? 'rgba(255,255,255,0.1)' 
-                              : 'linear-gradient(135deg, #D91CD2, #8b5cf6)',
-                            borderRadius: '8px'
-                          }}
-                          data-testid={`buy-pack-${pack.id}`}
-                        >
-                          {purchasingPack === pack.id ? 'Redirection...' : 'Acheter'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Info paiement */}
-            <div className="text-center py-6" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="flex items-center justify-center gap-4 text-white/40 text-xs">
-                <span>💳 Paiement sécurisé</span>
-                <span>•</span>
-                <span>⚡ Crédits instantanés</span>
-                <span>•</span>
-                <span>🔒 Stripe</span>
-              </div>
-            </div>
-          </div>
+          <CreditBoutique
+            coachCredits={coachCredits}
+            creditPacks={creditPacks}
+            loadingPacks={loadingPacks}
+            purchasingPack={purchasingPack}
+            onBuyPack={handleBuyPack}
+          />
         )}
 
-        {/* ========== ONGLET MON STRIPE v8.9.5 (Coachs uniquement) ========== */}
+        {/* ========== v13.2: ONGLET STRIPE - Composant extrait ========== */}
         {tab === "stripe" && !isSuperAdmin && (
-          <div className="space-y-6" data-testid="stripe-tab">
-            <div className="glass rounded-xl p-6" style={{ border: '1px solid rgba(217, 28, 210, 0.3)' }}>
-              <h2 className="text-xl font-bold text-white mb-4">💳 Stripe Connect</h2>
-              <p className="text-white/70 mb-6">
-                Connectez votre compte Stripe pour recevoir directement les paiements de vos clients.
-              </p>
-              
-              {/* Statut actuel */}
-              <div className="glass rounded-lg p-4 mb-6" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-white font-medium">Statut du compte</h3>
-                    <p className="text-white/50 text-sm mt-1">
-                      {stripeConnectStatus?.connected 
-                        ? stripeConnectStatus?.charges_enabled 
-                          ? 'Compte vérifié et prêt à recevoir des paiements' 
-                          : 'Compte en cours de vérification'
-                        : 'Non connecté'}
-                    </p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    stripeConnectStatus?.connected 
-                      ? stripeConnectStatus?.charges_enabled 
-                        ? 'bg-green-500/20 text-green-400' 
-                        : 'bg-yellow-500/20 text-yellow-400'
-                      : 'bg-red-500/20 text-red-400'
-                  }`}>
-                    {stripeConnectStatus?.connected 
-                      ? stripeConnectStatus?.charges_enabled ? '✓ Actif' : '⏳ En attente'
-                      : '✗ Déconnecté'}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Bouton de connexion */}
-              <button
-                onClick={handleStripeConnect}
-                disabled={stripeConnectLoading}
-                className="w-full py-3 rounded-lg text-white font-semibold transition-all hover:scale-105 disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #635BFF, #8b5cf6)' }}
-                data-testid="stripe-connect-tab-btn"
-              >
-                {stripeConnectLoading 
-                  ? 'Chargement...' 
-                  : stripeConnectStatus?.connected 
-                    ? 'Gérer mon compte Stripe' 
-                    : 'Connecter mon compte Stripe'}
-              </button>
-              
-              {/* Info */}
-              <div className="mt-6 p-4 rounded-lg" style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-                <h4 className="text-white font-medium mb-2">💡 Comment ça marche ?</h4>
-                <ul className="text-white/70 text-sm space-y-1 list-disc pl-5">
-                  <li>Les paiements de vos clients seront versés sur votre compte</li>
-                  <li>Une commission plateforme s'applique sur chaque transaction</li>
-                  <li>Les virements sont automatiques sous 2-7 jours</li>
-                </ul>
-              </div>
-            </div>
-            
-            {/* === v9.1.4: PERSONNALISATION MARQUE BLANCHE === */}
-            <div className="glass rounded-xl p-6" style={{ border: '1px solid rgba(217, 28, 210, 0.3)' }}>
-              <h2 className="text-xl font-bold text-white mb-4">🎨 Personnalisation</h2>
-              <p className="text-white/70 mb-4">
-                Personnalisez votre espace avec votre propre marque.
-              </p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-white/70 text-sm mb-2">Nom de ma plateforme</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={coachPlatformName || ''}
-                      onChange={(e) => setCoachPlatformName(e.target.value)}
-                      placeholder="Ex: Mon Studio Fitness"
-                      className="flex-1 px-4 py-2 rounded-lg bg-white/5 text-white border border-white/20 focus:border-purple-500 focus:outline-none"
-                      data-testid="platform-name-input"
-                    />
-                    <button
-                      onClick={async () => {
-                        try {
-                          await axios.put(`${BACKEND_URL}/api/coach/update-profile`, {
-                            platform_name: coachPlatformName
-                          }, { headers: { 'X-User-Email': coachUser?.email } });
-                          alert('✓ Nom de plateforme enregistré !');
-                        } catch (err) {
-                          alert('Erreur lors de la sauvegarde');
-                        }
-                      }}
-                      className="px-4 py-2 rounded-lg text-white font-medium"
-                      style={{ background: 'linear-gradient(135deg, #d91cd2, #8b5cf6)' }}
-                      data-testid="save-platform-name-btn"
-                    >
-                      Enregistrer
-                    </button>
-                  </div>
-                  <p className="text-white/50 text-xs mt-1">Ce nom s'affichera en haut de votre dashboard</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* v9.2.9: Suppression de la section "Ma Vitrine Publique" redondante - déplacée vers l'onglet "Ma Page" */}
-          </div>
+          <StripeConnectTab
+            stripeConnectStatus={stripeConnectStatus}
+            stripeConnectLoading={stripeConnectLoading}
+            onStripeConnect={handleStripeConnect}
+            coachPlatformName={coachPlatformName}
+            setCoachPlatformName={setCoachPlatformName}
+            coachEmail={coachUser?.email}
+          />
         )}
       </div>
     </div>
