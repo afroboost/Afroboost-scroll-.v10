@@ -41,6 +41,8 @@ from routes.reservation_routes import reservation_router, init_reservation_db
 from routes.auth_routes import auth_router, legacy_auth_router, init_auth_db
 # v9.2.0: Import routes promo codes
 from routes.promo_routes import promo_router, init_promo_db
+# v13.4: Import routes stripe
+from routes.stripe_routes import router as stripe_router, init_db as init_stripe_db
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -80,6 +82,8 @@ init_reservation_db(db)
 init_auth_db(db)
 # v9.2.0: Initialiser la db pour promo routes
 init_promo_db(db)
+# v13.4: Initialiser la db pour stripe routes
+init_stripe_db(db)
 
 # Configure logging FIRST (needed for socketio)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -6756,6 +6760,10 @@ fastapi_app.include_router(legacy_auth_router, prefix="/api")
 
 # v9.2.0: Include promo routes (modularisation)
 fastapi_app.include_router(promo_router, prefix="/api")
+
+# v13.4: Include Stripe routes (extracted)
+fastapi_app.include_router(stripe_router)
+init_stripe_db(db)
 
 fastapi_app.add_middleware(
     CORSMiddleware,
