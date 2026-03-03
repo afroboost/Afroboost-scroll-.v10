@@ -5,32 +5,30 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 
 ## Core Features Implemented
 
+### ✅ Mission v11.9 (March 2026) - COMPLETED
+**Vidéo Full-Width & Fix Scroll Réserver**
+1. **Bordures Supprimées** - Retiré `p-6` du container principal App.js
+2. **Full-Width** - Video container = 100% viewport (412px sur Samsung Ultra 24)
+3. **Zero Gap** - Left: 0px, Right: 0px
+4. **Scroll Robuste** - +412px vers sessions-section
+
+**Fix technique:**
+- App.js L3682: `p-6` retiré → `className="w-full min-h-screen relative section-gradient"`
+- App.js L3782: `px-6` ajouté au contenu sous Reels
+
 ### ✅ Mission v11.8 (March 2026) - COMPLETED
-**Réparation du Scroll Réserver & Audit Réel**
-1. **Scroll Instantané** - Clic sur Réserver (vidéo SA) scrolle vers `sessions-section` (+407px)
-2. **Aucune Redirection** - URL reste inchangée après clic
-3. **Double-clic Désactivé** - Sur vidéo SA, fait uniquement play/pause
-4. **Console Logs** - Confirmation: `[SUPER-ADMIN] ✅ Scroll effectué vers sessions-section`
+**Réparation du Scroll Réserver**
+- Scroll instantané vers sessions-section
+- Console logs de debug
 
 ### ✅ Mission v11.7 (March 2026) - COMPLETED
 **Logique Multi-Partenaires**
-- Identification par email unique
-- Scroll Reels conditionnel (>1 partenaire)
-- Protection Super Admin
+- Identification par email
+- Scroll conditionnel
 
-### ✅ Mission v11.5 (March 2026) - COMPLETED
-**Date/Heure Réservation**
-- Affichage date/heure dans confirmation
-
-### ✅ Mission v11.4 (March 2026) - COMPLETED
-**Système Codes & Crédits**
-- Validation code crée abonnement
-- Bloc info abonnement (solde)
-- Déduction automatique
-
-### ✅ Mission v11.2 (March 2026) - COMPLETED
-**Prompts Indépendants & PWA**
-- Isolation custom_prompts
+### ✅ Missions v11.2-v11.5 (March 2026) - COMPLETED
+- Système codes & crédits
+- Date/heure réservation
 - PWA installable
 
 ## Architecture
@@ -39,48 +37,25 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 /app/
 ├── backend/
 │   ├── server.py
-│   ├── routes/
-│   │   ├── promo_routes.py      # Subscription system
-│   │   ├── reservation_routes.py
-│   │   └── ...
-│   └── shared.py
+│   └── routes/
+│       ├── promo_routes.py
+│       └── reservation_routes.py
 ├── frontend/
 │   ├── src/
-│   │   ├── App.js               # Main + sessions-section
-│   │   ├── components/
-│   │   │   ├── CoachVitrine.js  # Partner storefront
-│   │   │   ├── PartnersCarousel.js # Reels feed (v11.8)
-│   │   │   └── ChatWidget.js
-│   │   └── services/
-│   │       └── SoundManager.js
+│   │   ├── App.js              # v11.9: p-6 removed from main container
+│   │   └── components/
+│   │       └── PartnersCarousel.js  # v11.8: scroll to sessions
 │   └── public/
 │       ├── manifest.json
 │       └── sw.js
 └── memory/PRD.md
 ```
 
-## Key Logic (v11.8)
-
-### handleReserve - Scroll for Super Admin
-```javascript
-const handleReserve = (e) => {
-  if (isSuperAdminVideo) {
-    const offersSection = document.getElementById('sessions-section') || 
-                         document.getElementById('offers-section');
-    if (offersSection) {
-      offersSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    return;
-  }
-  onNavigate(partner); // For other partners
-};
-```
-
 ## Data Status
 - ✅ 21 réservations intactes
-- ✅ 14 contacts intacts  
-- ✅ Système BOSS: 41/47 séances
-- ✅ PWA: display: standalone
+- ✅ 14 contacts intacts
+- ✅ BOSS: 41/47 séances
+- ✅ PWA: standalone
 
 ## Pending Tasks (P0/P1)
 1. **P0**: Stripe Connect for partner payouts
@@ -88,11 +63,10 @@ const handleReserve = (e) => {
 
 ## Super Admin Access
 - Emails: `contact.artboost@gmail.com`, `afroboost.bassi@gmail.com`
-- Login: Triple-click footer "© Afroboost 2026"
 
 ## Testing Status
-- Mission v11.8: 100% frontend validated
-- Report: `/app/test_reports/iteration_137.json`
+- Mission v11.9: 100% validated
+- Report: `/app/test_reports/iteration_138.json`
 
 ---
-Last Updated: March 2026 - Mission v11.8 VALIDATED
+Last Updated: March 2026 - Mission v11.9 VALIDATED
