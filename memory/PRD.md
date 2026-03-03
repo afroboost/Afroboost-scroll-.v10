@@ -5,38 +5,38 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 
 ## Core Features Implemented
 
-### ✅ Mission v12.1 (March 2026) - COMPLETED
-**Contrôle Admin & Design Premium Minimalist**
-1. **Prix Services Dynamiques** - Super Admin définit le coût en crédits:
-   - Campagne: 2 crédits
-   - Conversation IA: 1 crédit
-   - Code Promo: 3 crédits
-2. **Design Premium Sans Cadre** - Fond #000000, icônes nues, violet #D91CD2 glow uniquement
-3. **Nouvel onglet "Tarifs Services"** dans le panneau Super Admin
+### ✅ Mission v13.0 (March 2026) - COMPLETED
+**Stripe Connect & Vente de Packs Crédits**
+1. **Paiement par Carte** - Endpoint `/api/stripe/create-credit-checkout`
+2. **Crédits Automatiques** - Webhook Stripe ajoute crédits instantanément
+3. **Boutique Premium** - Onglet "💎 Boutique" dans dashboard partenaire
+4. **Transaction Logs** - Collection `credit_transactions` pour historique
+5. **Notifications** - Email au coach + notification à Bassi
 
-**Endpoints:**
-- `GET /api/platform-settings` - Retourne service_prices
-- `PUT /api/platform-settings` - Modifie service_prices (Admin only)
+**Endpoints v13.0:**
+- `GET /api/credit-packs` - Liste des packs visibles
+- `POST /api/stripe/create-credit-checkout` - Crée session Stripe
+- `POST /api/webhook/stripe` - Gère `credit_purchase`
+- `GET /api/credit-transactions` - Historique transactions
+
+### ✅ Mission v12.1 (March 2026) - COMPLETED
+**Contrôle Admin & Design Premium**
+- Prix services dynamiques
+- Design sans cadre
 
 ### ✅ Mission v11.9 (March 2026) - COMPLETED
 **Vidéo Full-Width**
-- Bordures supprimées, width=100% viewport
+- Bordures supprimées, width=100%
 
-### ✅ Mission v11.8 (March 2026) - COMPLETED
-**Scroll Réserver**
-- +412px vers sessions-section
-
-### ✅ Missions v11.2-v11.7 - COMPLETED
-- Système codes & crédits
-- Logique multi-partenaires
-- PWA installable
+### ✅ Missions v11.2-v11.8 - COMPLETED
+- Système codes & crédits, Scroll réserver, PWA
 
 ## Architecture
 
 ```
 /app/
 ├── backend/
-│   ├── server.py              # v12.1: service_prices in platform-settings
+│   ├── server.py              # v13.0: Stripe credit checkout + webhook
 │   └── routes/
 │       ├── promo_routes.py
 │       └── reservation_routes.py
@@ -44,45 +44,45 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 │   ├── src/
 │   │   ├── App.js
 │   │   └── components/
-│   │       ├── SuperAdminPanel.js  # v12.1: Tab Tarifs Services
-│   │       └── PartnersCarousel.js
+│   │       ├── CoachDashboard.js  # v13.0: Boutique tab
+│   │       └── SuperAdminPanel.js # v12.1: Tarifs services
 │   └── public/
 │       ├── manifest.json
 │       └── sw.js
 └── memory/PRD.md
 ```
 
-## Key API - Service Prices (v12.1)
+## Key Flow - Credit Purchase (v13.0)
 
-```json
-// GET /api/platform-settings
-{
-  "service_prices": {
-    "campaign": 2,
-    "ai_conversation": 1,
-    "promo_code": 3
-  }
-}
+```
+1. Coach clique "Acheter" dans Boutique
+2. Frontend: POST /api/stripe/create-credit-checkout
+3. Backend: Crée session Stripe avec metadata
+4. Coach redirigé vers page Stripe
+5. Après paiement: Webhook /api/webhook/stripe
+6. Backend: Ajoute crédits + log transaction + emails
+7. Coach voit nouveau solde
 ```
 
 ## Data Status
 - ✅ 22 réservations
 - ✅ 14 contacts
 - ✅ BOSS: 41/47 séances
+- ✅ 4 packs crédits (Starter 49 CHF, Pro 99 CHF...)
 - ✅ Video: full-width
 
 ## Pending Tasks (P0/P1)
-1. **P0**: Stripe Connect for partner payouts
-2. **P1**: Production deployment
-3. **P1**: Implement credit check before services (verrouillage)
+1. **P1**: Production deployment
+2. **P1**: Add more credit packs (500, 1000 credits)
+3. **P2**: Dashboard stats for credit consumption
 
 ## Super Admin Access
 - Emails: `contact.artboost@gmail.com`, `afroboost.bassi@gmail.com`
-- Access: Triple-click footer "© Afroboost 2026"
+- Stripe: Clés LIVE configurées
 
 ## Testing Status
-- Mission v12.1: 100% validated (9/9 backend tests)
-- Report: `/app/test_reports/iteration_139.json`
+- Mission v13.0: 100% (20/20 backend tests)
+- Report: `/app/test_reports/iteration_140.json`
 
 ---
-Last Updated: March 2026 - Mission v12.1 VALIDATED
+Last Updated: March 2026 - Mission v13.0 VALIDATED
