@@ -239,6 +239,9 @@ const CoachVitrine = ({ username, onClose, onBack }) => {
   const [showQR, setShowQR] = useState(false);
   const sliderRef = useRef(null);
   
+  // v14.6: Recherche par mots-clés
+  const [offerSearch, setOfferSearch] = useState('');
+  
   // v9.2.9: Configuration paiement du coach
   const [paymentConfig, setPaymentConfig] = useState({
     stripe: '', paypal: '', twint: '', coachWhatsapp: ''
@@ -817,13 +820,38 @@ const CoachVitrine = ({ username, onClose, onBack }) => {
             
             {/* Section Offres avec Slider horizontal */}
             <div className="mb-8">
-              <h2 
-                className="font-semibold text-white mb-4 flex items-center gap-3"
-                style={{ fontSize: '20px' }}
-              >
-                <span className="text-2xl">🎯</span>
-                {offers === DEFAULT_STARTER_OFFERS ? 'Offres de démarrage Afroboost' : 'Offres disponibles'}
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 
+                  className="font-semibold text-white flex items-center gap-3"
+                  style={{ fontSize: '20px' }}
+                >
+                  <span className="text-2xl">🎯</span>
+                  {offers === DEFAULT_STARTER_OFFERS ? 'Offres de démarrage Afroboost' : 'Offres disponibles'}
+                </h2>
+                
+                {/* v14.6: Champ de recherche par mots-clés */}
+                {offers.length > 1 && (
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">🔍</span>
+                    <input
+                      type="text"
+                      value={offerSearch}
+                      onChange={(e) => setOfferSearch(e.target.value)}
+                      placeholder="Rechercher..."
+                      className="pl-9 pr-4 py-2 rounded-full bg-black/40 text-white text-sm border border-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500 w-40 md:w-56"
+                      data-testid="offer-search-input"
+                    />
+                    {offerSearch && (
+                      <button
+                        onClick={() => setOfferSearch('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             
             {offers === DEFAULT_STARTER_OFFERS && (
               <p className="text-white/50 text-sm mb-4 italic">
@@ -831,36 +859,57 @@ const CoachVitrine = ({ username, onClose, onBack }) => {
               </p>
             )}
             
-            <div 
-              ref={sliderRef}
-              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4"
-              style={{ 
-                scrollBehavior: 'smooth',
-                WebkitOverflowScrolling: 'touch',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
-              }}
-              data-testid="vitrine-offers-slider"
-            >
-              {offers.map((offer) => (
-                <OfferCardVitrine
-                  key={offer.id}
-                  offer={offer}
-                />
-              ))}
-            </div>
-            
-            {/* Indicateurs si plusieurs offres */}
-            {offers.length > 1 && (
-              <div className="flex justify-center gap-2 mt-2">
-                {offers.map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="w-2 h-2 rounded-full bg-white/30"
-                  />
-                ))}
-              </div>
-            )}
+            {/* v14.6: Filtrer les offres par mots-clés ou nom */}
+            {(() => {
+              const searchTerm = offerSearch.toLowerCase().trim();
+              const filteredOffers = searchTerm 
+                ? offers.filter(offer => {
+                    const nameMatch = offer.name?.toLowerCase().includes(searchTerm);
+                    const descMatch = offer.description?.toLowerCase().includes(searchTerm);
+                    const keywordsMatch = offer.keywords?.toLowerCase().includes(searchTerm);
+                    return nameMatch || descMatch || keywordsMatch;
+                  })
+                : offers;
+              
+              return filteredOffers.length > 0 ? (
+                <>
+                  <div 
+                    ref={sliderRef}
+                    className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4"
+                    style={{ 
+                      scrollBehavior: 'smooth',
+                      WebkitOverflowScrolling: 'touch',
+                      scrollbarWidth: 'none',
+                      msOverflowStyle: 'none'
+                    }}
+                    data-testid="vitrine-offers-slider"
+                  >
+                    {filteredOffers.map((offer) => (
+                      <OfferCardVitrine
+                        key={offer.id}
+                        offer={offer}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Indicateurs si plusieurs offres */}
+                  {filteredOffers.length > 1 && (
+                    <div className="flex justify-center gap-2 mt-2">
+                      {filteredOffers.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className="w-2 h-2 rounded-full bg-white/30"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-white/50 text-center py-8">
+                  Aucune offre ne correspond à "{offerSearch}"
+                </p>
+              );
+            })()}
           </div>
 
           {/* Section Cours */}

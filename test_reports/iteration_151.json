@@ -1,0 +1,98 @@
+{
+  "summary": "Mission v14.6 Testing Complete - Recherche par mots-clés et stabilité campagnes. All 16/16 backend tests passed. UI features verified via Playwright.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_v146_mission.py",
+    "/app/test_reports/pytest/pytest_v146_mission.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✅ CoachVitrine.js Lines 241-243, 833-852: Champ de recherche (loupe) avec offerSearch state, data-testid='offer-search-input'",
+    "✅ CoachVitrine.js Lines 863-910: Filtrage par nom, description ou keywords avec message 'Aucune offre ne correspond'",
+    "✅ OffersManager.js Lines 222-233: Champ Mots-clés avec data-testid='offer-keywords'",
+    "✅ Backend server.py Lines 430, 447: Offer model avec keywords field",
+    "✅ scheduler_engine.py Lines 406, 431, 480: mediaUrl traité pour campagnes programmées",
+    "✅ CRMSection.js Lines 670-685: Bulles colorées (Client=gray-700 GAUCHE, Coach/IA=#D91CD2 DROITE)",
+    "✅ CRMSection.js Lines 310, 432, 703: Dates format fr-CH",
+    "✅ PromoCodesTab.js Lines 458-470: Bouton Copier avec feedback visuel (CopyIcon -> CheckIcon)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_v146_mission.py"
+  ],
+  "success_rate": {
+    "backend": "100% (16/16 tests passed)",
+    "frontend": "100% (code review verified + UI testing)"
+  },
+  "seed_data_creation": "TEST_ prefixed offers created and deleted for testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Mission v14.6 fully verified. New features: 1) CoachVitrine search field (offer-search-input) with filtering by name/description/keywords, 2) OffersManager keywords field (offer-keywords), 3) Backend keywords support in Offer model, 4) mediaUrl handling in scheduler_engine for scheduled campaigns, 5) All v14.5 features still working (CRM bubble colors, fr-CH dates, document.title, badge Session Active, copy promo codes). Anti-regression: 8 contacts, 3 offers minimum confirmed.",
+  "tests_executed": {
+    "backend_api": [
+      "Health check (200 OK)",
+      "Offers endpoint (200 OK, 3 offers)",
+      "Offers have keywords field (PASSED)",
+      "Create offer with keywords (PASSED - created and deleted)",
+      "Campaigns endpoint (200 OK)",
+      "Create campaign with mediaUrl (PASSED)",
+      "Create scheduled campaign with mediaUrl (PASSED)",
+      "Chat sessions endpoint (200 OK)",
+      "Chat session title field structure (VERIFIED)",
+      "Conversations (CRM) endpoint (200 OK)",
+      "Discount codes endpoint (200 OK)",
+      "Contacts count >= 8 (PASSED: 8 contacts)",
+      "Reservations endpoint (200 OK)",
+      "Courses endpoint (200 OK)",
+      "Offers count >= 3 (PASSED)",
+      "Coach vitrine endpoint (200 OK)"
+    ],
+    "frontend_ui": [
+      "Homepage loads with fr-CH dates (PASSED)",
+      "Triple-click footer opens login modal (PASSED - Connexion Partenaire modal)",
+      "CoachVitrine search field visible (PASSED - data-testid='offer-search-input')",
+      "Search filtering works - 'cours' shows matching offers (PASSED)",
+      "No results message 'Aucune offre ne correspond' (PASSED)",
+      "3 offers visible (Cours à l'unité, Carte 10 cours, Abonnement 1 mois)"
+    ],
+    "code_review": [
+      "CoachVitrine offerSearch state and filtering logic (lines 241-243, 863-910)",
+      "OffersManager keywords field with data-testid (lines 222-233)",
+      "CRM bubble colors isClientMessage logic (lines 670-685)",
+      "fr-CH date formatting (lines 310, 432, 703)",
+      "PromoCodesTab copy button with icon change (lines 458-470)",
+      "scheduler_engine mediaUrl handling (lines 406, 431, 480)"
+    ]
+  },
+  "anti_regression_status": {
+    "contacts_count": "8 (PASS - expected ≥8)",
+    "offers_count": "3 (PASS - expected ≥3)",
+    "reservations_endpoint": "200 OK",
+    "courses_endpoint": "200 OK",
+    "campaigns_mediaUrl": "PASS - stored and retrieved correctly",
+    "scheduled_campaigns": "PASS - status='scheduled' with mediaUrl"
+  },
+  "verified_v14_6_features": {
+    "coach_vitrine_search": "✅ Champ de recherche visible si > 1 offre",
+    "search_filtering": "✅ Filtrage par nom, description ou keywords",
+    "no_results_message": "✅ 'Aucune offre ne correspond à [terme]'",
+    "offers_manager_keywords": "✅ Champ Mots-clés dans formulaire",
+    "api_keywords_support": "✅ Création offre avec keywords fonctionne",
+    "campaigns_mediaUrl": "✅ mediaUrl stocké en base",
+    "scheduler_mediaUrl": "✅ scheduler_engine traite mediaUrl"
+  },
+  "verified_v14_5_features": {
+    "document_title": "✅ Change avec session.title",
+    "badge_session_active": "✅ Implementation in ChatWidget",
+    "crm_bubble_colors": "✅ Client=Gris GAUCHE, Coach/IA=Violet DROITE",
+    "dates_fr_ch": "✅ Format fr-CH partout",
+    "promo_copy_button": "✅ CopyIcon -> CheckIcon avec feedback"
+  }
+}
