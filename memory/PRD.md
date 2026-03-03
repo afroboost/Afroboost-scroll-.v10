@@ -5,107 +5,89 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 
 ## Core Features Implemented
 
+### ✅ Mission v13.4 (March 2026) - COMPLETED
+**Refactoring Final & Pré-Déploiement**
+1. **CoachDashboard.js** réduit de 6537 → **5432 lignes** (-1105 lignes, -16.9%)
+2. **6 Composants Extraits** vers `/components/dashboard/` :
+   - `ConceptEditor.js` (488 lignes) - Personnalisation couleurs, paramètres
+   - `CoursesManager.js` (285 lignes) - Gestion des cours
+   - `OffersManager.js` (332 lignes) - Gestion des offres
+   - `CreditsGate.js` (44 lignes) - Écran blocage crédits
+   - `CreditBoutique.js` (111 lignes) - Boutique de packs
+   - `StripeConnectTab.js` (127 lignes) - Stripe Connect
+3. **Backend Routes Extraites** :
+   - `stripe_routes.py` (442 lignes) - Paiements Stripe
+4. **Anti-régression validée** : 22 réservations, 7 contacts intacts
+5. **Tests** : 100% (18/18 tests backend passés)
+
 ### ✅ Mission v13.2 (March 2026) - COMPLETED
-**Validation Sécurité & Nettoyage du Code (Refactoring)**
-1. **Verrouillage Crédits Validé** - Partenaires avec 0 crédits voient écran "Crédits insuffisants"
-2. **Super Admin Bypass** - Bassi peut tout ouvrir sans restriction
-3. **Refactoring CoachDashboard.js** - Réduit de 6759 → 6537 lignes (-222 lignes)
-4. **Composants Extraits** :
-   - `CreditsGate.js` - Écran de blocage réutilisable
-   - `CreditBoutique.js` - Section achat de packs
-   - `StripeConnectTab.js` - Section Stripe & personnalisation
-5. **Anti-régression** - 22 réservations intactes, vidéo full-width confirmée
+**Validation Sécurité & Nettoyage du Code**
+- Verrouillage crédits validé (CreditsGate)
+- Super Admin bypass confirmé
+- Premier découpage CoachDashboard.js
 
-**Nouveaux fichiers v13.2:**
-- `/app/frontend/src/components/dashboard/CreditsGate.js` (45 lignes)
-- `/app/frontend/src/components/dashboard/CreditBoutique.js` (112 lignes)
-- `/app/frontend/src/components/dashboard/StripeConnectTab.js` (128 lignes)
-- `/app/frontend/src/components/dashboard/index.js`
+### ✅ Missions v13.0-v13.1 - COMPLETED
+- Stripe intégré pour vente de packs crédits
+- Webhook pour crédits automatiques
+- Verrouillage services si crédits insuffisants
 
-### ✅ Mission v13.1 (March 2026) - COMPLETED
-**Verrouillage Services & Sécurité Crédits**
-- Blocage accès services si crédits insuffisants
-- Redirection vers Boutique pour recharger
-
-### ✅ Mission v13.0 (March 2026) - COMPLETED
-**Stripe Connect & Vente de Packs Crédits**
-- Paiement par carte via Stripe
-- Crédits automatiques via webhook
-- Boutique premium dans dashboard partenaire
-
-### ✅ Missions v11.2-v12.1 - COMPLETED
+### ✅ Missions v11.x-v12.x - COMPLETED
 - Prix services dynamiques (Super Admin)
-- Design sans cadre "Zéro Frame"
-- Vidéo Full-Width sans bordures
-- Système codes & crédits
+- Design "Zéro Cadre" premium
+- Vidéo Full-Width
 - PWA installable
 
-## Architecture
+## Architecture v13.4
 
 ```
 /app/
 ├── backend/
-│   ├── server.py              # Backend principal (~7000 lignes - à continuer refactoring)
+│   ├── server.py              # 6976 lignes (routes principales)
 │   └── routes/
-│       ├── auth_routes.py
-│       ├── campaign_routes.py
-│       ├── coach_routes.py
-│       ├── promo_routes.py
-│       └── reservation_routes.py
+│       ├── admin_routes.py
+│       ├── auth_routes.py     # 345 lignes
+│       ├── campaign_routes.py # 134 lignes
+│       ├── coach_routes.py    # 438 lignes
+│       ├── promo_routes.py    # 325 lignes
+│       ├── reservation_routes.py # 209 lignes
+│       ├── stripe_routes.py   # 442 lignes (NEW v13.4)
+│       └── shared.py          # 26 lignes
 ├── frontend/
 │   ├── src/
 │   │   ├── App.js
 │   │   └── components/
-│   │       ├── CoachDashboard.js  # v13.2: Optimisé (6537 lignes)
-│   │       ├── dashboard/         # v13.2: NOUVEAU - Composants extraits
-│   │       │   ├── CreditsGate.js
-│   │       │   ├── CreditBoutique.js
-│   │       │   ├── StripeConnectTab.js
+│   │       ├── CoachDashboard.js  # 5432 lignes (OPTIMISÉ v13.4)
+│   │       ├── dashboard/         # 1398 lignes total (NEW v13.4)
+│   │       │   ├── ConceptEditor.js    # 488 lignes
+│   │       │   ├── CoursesManager.js   # 285 lignes
+│   │       │   ├── OffersManager.js    # 332 lignes
+│   │       │   ├── CreditsGate.js      # 44 lignes
+│   │       │   ├── CreditBoutique.js   # 111 lignes
+│   │       │   ├── StripeConnectTab.js # 127 lignes
 │   │       │   └── index.js
-│   │       ├── coach/
-│   │       │   ├── CampaignManager.js
-│   │       │   ├── CRMSection.js
-│   │       │   └── ReservationTab.js
-│   │       └── SuperAdminPanel.js
+│   │       └── coach/
+│   │           ├── CampaignManager.js
+│   │           ├── CRMSection.js
+│   │           └── ReservationTab.js
 │   └── public/
 │       ├── manifest.json
 │       └── sw.js
 └── memory/PRD.md
 ```
 
-## Service Prices (Configurable by Super Admin)
-- Campagnes: **2 crédits**
-- Conversation IA: **1 crédit**
-- Code Promo: **3 crédits**
-
-## Key Flow - Credit Lock v13.1/v13.2
-
-```
-1. Partenaire accède à un onglet (Codes/Campagnes/Conversations)
-2. Frontend: hasCreditsFor(serviceType) vérifie:
-   - isSuperAdmin → true (bypass)
-   - credits === -1 → true (illimité)
-   - credits >= servicePrices[serviceType] → true
-3. Si false: Affiche CreditsGate avec:
-   - Message "Crédits insuffisants"
-   - Prix requis en violet
-   - Solde actuel en rouge
-   - Bouton "Recharger mes crédits" → Boutique
-```
-
-## Data Status
-- ✅ 22 réservations
-- ✅ 7 contacts
-- ✅ 4 packs crédits (Starter 49 CHF, Pro 99 CHF...)
-- ✅ Video: full-width
-- ✅ Service prices: campaign=2, ai_conversation=1, promo_code=3
+## Data Status (Anti-Régression)
+- ✅ **22 réservations** intactes
+- ✅ **7 contacts** intactes
+- ✅ **4 packs crédits** (Starter, Pro, Business, Enterprise)
+- ✅ **Service prices**: campaign=2, ai_conversation=1, promo_code=3
+- ✅ **Video**: Full-Width (pas de bordures noires)
 
 ## Pending Tasks (P0/P1)
-1. **P0**: Implémenter Stripe Connect pour paiements partenaires
-2. **P1**: Continuer refactoring server.py (extraire routes restantes)
-3. **P1**: Continuer refactoring CoachDashboard.js (encore ~6500 lignes)
-4. **P1**: Production deployment (backend actuellement preview seulement)
-5. **P2**: Déduction crédits pour Chat actions (v9.5.8 incomplet)
+1. **P0**: Continuer refactoring CoachDashboard.js (objectif <3000 lignes)
+2. **P0**: Implémenter Stripe Connect complet pour paiements partenaires
+3. **P1**: Continuer refactoring server.py (extraire routes restantes)
+4. **P1**: Production deployment (backend preview seulement)
+5. **P2**: Déduction crédits pour Chat actions
 
 ## Super Admin Access
 - Emails: `contact.artboost@gmail.com`, `afroboost.bassi@gmail.com`
@@ -113,8 +95,8 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 - Triple-click sur "© Afroboost 2026" pour login admin
 
 ## Testing Status
-- Mission v13.2: 100% (12/12 backend tests, frontend validé)
-- Report: `/app/test_reports/iteration_142.json`
+- Mission v13.4: **100%** (18/18 backend tests)
+- Report: `/app/test_reports/iteration_143.json`
 
 ---
-Last Updated: March 2026 - Mission v13.2 VALIDATED
+Last Updated: March 2026 - Mission v13.4 VALIDATED
