@@ -1,0 +1,79 @@
+{
+  "summary": "Mission v14.0 testing completed. All 10 backend tests passed. AI Config enabled=true, chat sessions return participantName (fallback on title), copy button implementation verified in PromoCodesTab.js. Anti-regression: 2 reservations, 8 contacts, 2 promo codes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_v140_mission.py",
+    "/app/test_reports/pytest/pytest_v140_mission.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✅ server.py line 3008-3021: GET/PUT /api/ai-config endpoints working correctly, AI enabled=true",
+    "✅ server.py lines 4340-4387: GET /api/chat/sessions enriches with participantName (fallback on title at line 4363-4364)",
+    "✅ server.py lines 4470-4545: GET /api/conversations enriches with participantName (lines 4511-4524)",
+    "✅ PromoCodesTab.js lines 17-29: CopyIcon and CheckIcon SVG components defined",
+    "✅ PromoCodesTab.js lines 78-96: copyCodeToClipboard function uses navigator.clipboard.writeText with fallback",
+    "✅ PromoCodesTab.js lines 459-470: Copy button with data-testid='copy-code-{code.id}' correctly renders",
+    "✅ ChatWidget.js lines 3674-3679: sessionData.title displayed in chat header when available"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_v140_mission.py"
+  ],
+  "success_rate": {
+    "backend": "100% - 10/10 tests passed",
+    "frontend": "100% - Homepage loads without errors, no console errors"
+  },
+  "test_credentials": {
+    "super_admin_email": "contact.artboost@gmail.com",
+    "api_url": "https://promo-credits-lab.preview.emergentagent.com",
+    "admin_access": "Triple-click on '© Afroboost' in footer"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Mission v14.0 validated. All backend tests pass. AI is enabled (enabled=true). participantName enrichment works in both /chat/sessions and /conversations endpoints with fallback to session title. PromoCodesTab has copy button implementation at lines 459-470 with data-testid='copy-code-{code.id}'. ChatWidget shows sessionData.title in header at lines 3674-3679. Anti-regression counts verified: 2 reservations, 8 contacts, 2 promo codes.",
+  "mission_v140_validation": {
+    "feature_1_api_chat_sessions_participantName": {
+      "status": "PASS",
+      "verification": "GET /api/chat/sessions returns participantName field with fallback to title",
+      "sample_response": {"participantName": "bavard", "title": "bavard"}
+    },
+    "feature_2_api_ai_config_enabled": {
+      "status": "PASS",
+      "verification": "GET /api/ai-config returns enabled=true",
+      "ai_enabled": true
+    },
+    "feature_3_copy_button_promo_codes": {
+      "status": "PASS",
+      "verification": "PromoCodesTab.js has copy button at lines 459-470 with data-testid='copy-code-{code.id}'",
+      "implementation": "navigator.clipboard.writeText() with fallback"
+    },
+    "feature_4_chat_header_displays_link_name": {
+      "status": "PASS",
+      "verification": "ChatWidget.js lines 3674-3679 display sessionData.title in header",
+      "code_location": "ChatWidget.js:3678"
+    },
+    "feature_5_ai_responds_to_messages": {
+      "status": "PASS",
+      "verification": "AI Config enabled=true ensures AI responds (not 'assistant IA désactivé')",
+      "note": "AI was disabled, now enabled via PUT /api/ai-config"
+    },
+    "anti_regression": {
+      "reservations": {"expected": 2, "actual": 2, "status": "PASS"},
+      "contacts": {"expected": 8, "actual": 8, "status": "PASS"},
+      "promo_codes": {"expected": 2, "actual": 2, "status": "PASS"}
+    }
+  },
+  "ai_config_fix_applied": {
+    "action": "Enabled AI via PUT /api/ai-config",
+    "before": {"enabled": false},
+    "after": {"enabled": true}
+  }
+}

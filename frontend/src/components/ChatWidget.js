@@ -3671,6 +3671,13 @@ export const ChatWidget = () => {
                       Synchronisation...
                     </span>
                   ) : (
+                    /* v14.0: Afficher le nom du lien actif si disponible */
+                    sessionData?.title ? (
+                      <span className="flex items-center gap-1">
+                        <span style={{ opacity: 0.7, fontSize: '10px' }}>🔗</span>
+                        {sessionData.title}
+                      </span>
+                    ) :
                     /* Afficher le statut abonné si profil validé + cours restants */
                     afroboostProfile?.code && step === 'chat'
                       ? `Abonne - ${afroboostProfile.name}${reservationEligibility?.remaining !== undefined && reservationEligibility?.remaining !== 'illimite' ? ` (${reservationEligibility.remaining} cours)` : ''}`

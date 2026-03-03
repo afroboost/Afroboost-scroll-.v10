@@ -1,15 +1,30 @@
 /**
- * PromoCodesTab Component v13.8
+ * PromoCodesTab Component v14.0
  * Section Codes Promo - VERSION COMPLÈTE RESTAURÉE
  * Inclut: Edition, Duplication, Durée validité, Max uses, Sélection contacts
+ * v14.0: Ajout bouton "Copier" le code
  */
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { CreditsGate } from './index';
 
 // Icônes
 const FolderIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+  </svg>
+);
+
+// v14.0: Icône Copier
+const CopyIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>
+);
+
+// v14.0: Icône Check (copié)
+const CheckIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
   </svg>
 );
 
@@ -58,6 +73,27 @@ const PromoCodesTab = ({
   t
 }) => {
   const fileInputRef = useRef(null);
+  const [copiedCodeId, setCopiedCodeId] = useState(null); // v14.0: État pour bouton "Copié"
+
+  // v14.0: Fonction pour copier le code dans le presse-papier
+  const copyCodeToClipboard = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code.code);
+      setCopiedCodeId(code.id);
+      setTimeout(() => setCopiedCodeId(null), 2000); // Reset après 2 secondes
+    } catch (err) {
+      console.error('Erreur copie:', err);
+      // Fallback pour navigateurs anciens
+      const textArea = document.createElement('textarea');
+      textArea.value = code.code;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiedCodeId(code.id);
+      setTimeout(() => setCopiedCodeId(null), 2000);
+    }
+  };
 
   // Helper pour formater les dates
   const formatDate = (dateVal) => {
@@ -419,6 +455,19 @@ const PromoCodesTab = ({
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-white font-bold text-lg">{code.code}</span>
+                  {/* v14.0: Bouton Copier le code */}
+                  <button
+                    onClick={() => copyCodeToClipboard(code)}
+                    className={`p-1.5 rounded transition-all ${
+                      copiedCodeId === code.id 
+                        ? 'bg-green-500/30 text-green-400' 
+                        : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+                    }`}
+                    title={copiedCodeId === code.id ? "Copié !" : "Copier le code"}
+                    data-testid={`copy-code-${code.id}`}
+                  >
+                    {copiedCodeId === code.id ? <CheckIcon /> : <CopyIcon />}
+                  </button>
                   <span className="px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(217, 28, 210, 0.3)', color: '#D91CD2' }}>
                     {code.type === '100%' ? 'GRATUIT' : `${code.value}${code.type}`}
                   </span>

@@ -1625,7 +1625,6 @@ async def sanitize_data():
             cleaned_count += 1
     
     return {"success": True, "codes_cleaned": cleaned_count}
-    return campaign
 
 @api_router.post("/campaigns")
 async def create_campaign(campaign: CampaignCreate):
@@ -4340,10 +4339,52 @@ async def join_group_automatically(request: GroupJoinRequest):
 # --- Chat Sessions ---
 @api_router.get("/chat/sessions")
 async def get_chat_sessions(include_deleted: bool = False):
-    """Récupère toutes les sessions de chat (exclut les supprimées par défaut)"""
+    """Récupère toutes les sessions de chat (exclut les supprimées par défaut)
+    v14.0: Enrichit avec participantName et participantEmail pour l'affichage CRM
+    """
     query = {} if include_deleted else {"is_deleted": {"$ne": True}}
     sessions = await db.chat_sessions.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
-    return sessions
+    
+    # v14.0: Enrichir chaque session avec les infos du premier participant
+    enriched_sessions = []
+    for session in sessions:
+        participant_name = ""
+        participant_email = ""
+        
+        # Chercher dans participant_ids
+        for pid in session.get("participant_ids", []):
+            participant = await db.chat_participants.find_one({"id": pid}, {"_id": 0, "name": 1, "email": 1})
+            if participant:
+                participant_name = participant.get("name", "")
+                participant_email = participant.get("email", "")
+                break
+        
+        # Fallback sur le titre de la session
+        if not participant_name and session.get("title"):
+            participant_name = session.get("title")
+        
+        # Récupérer le dernier message
+        last_message = await db.chat_messages.find_one(
+            {"session_id": session.get("id"), "is_deleted": {"$ne": True}},
+            {"_id": 0, "content": 1},
+            sort=[("created_at", -1)]
+        )
+        
+        # Compter les messages
+        message_count = await db.chat_messages.count_documents({
+            "session_id": session.get("id"),
+            "is_deleted": {"$ne": True}
+        })
+        
+        enriched_sessions.append({
+            **session,
+            "participantName": participant_name,
+            "participantEmail": participant_email,
+            "lastMessage": last_message.get("content", "")[:100] if last_message else "Nouvelle conversation",
+            "messageCount": message_count
+        })
+    
+    return enriched_sessions
 
 # === CRM AVANCÉ - HISTORIQUE CONVERSATIONS ===
 @api_router.get("/conversations")
@@ -4467,16 +4508,30 @@ async def get_conversations_advanced(
             "is_deleted": {"$ne": True}
         })
         
+        # v14.0: Extraire le nom et email du premier participant pour l'affichage CRM
+        first_participant_name = ""
+        first_participant_email = ""
+        if participants_info:
+            first_participant_name = participants_info[0].get("name", "")
+            first_participant_email = participants_info[0].get("email", "")
+        # Fallback sur le titre de la session (pour les liens nommés)
+        if not first_participant_name and session.get("title"):
+            first_participant_name = session.get("title")
+        
         enriched_conversations.append({
             **session,
             "participants": participants_info,
+            "participantName": first_participant_name,  # v14.0: Pour l'affichage CRM
+            "participantEmail": first_participant_email,  # v14.0: Pour l'affichage CRM
+            "lastMessage": last_message.get("content", "")[:100] if last_message else "Nouvelle conversation",
             "last_message": {
                 "content": last_message.get("content", "")[:100] if last_message else "",
                 "sender_name": last_message.get("sender_name", "") if last_message else "",
                 "sender_type": last_message.get("sender_type", "") if last_message else "",
                 "created_at": last_message.get("created_at", "") if last_message else ""
             } if last_message else None,
-            "message_count": message_count
+            "message_count": message_count,
+            "messageCount": message_count  # v14.0: Alias pour compatibilité frontend
         })
     
     logger.info(f"[CRM] Conversations: page={page}, limit={limit}, query='{query}', total={total}")
