@@ -3679,7 +3679,7 @@ function App() {
   }
 
   return (
-    <div className="w-full min-h-screen p-6 relative section-gradient" style={{ fontFamily: 'system-ui, sans-serif' }}>
+    <div className="w-full min-h-screen relative section-gradient" style={{ fontFamily: 'system-ui, sans-serif' }}>
       <LanguageSelector lang={lang} setLang={setLang} />
 
       {/* Event Poster Modal (Popup d'accueil) */}
@@ -3778,7 +3778,8 @@ function App() {
       </div>
       
       {/* v9.5.8: Contenu scrollable SOUS le flux Reels - Espacement réduit */}
-      <div className="max-w-4xl mx-auto px-4 pt-2" style={{ background: '#000000' }}>
+      {/* v11.9: Ajout p-6 ici car retiré du container principal pour full-width video */}
+      <div className="max-w-4xl mx-auto px-6 pt-2" style={{ background: '#000000' }}>
         {/* v9.5.8: Suppression espace vide */}
 
         {/* Message si aucun résultat */}
