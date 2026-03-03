@@ -5,30 +5,30 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 
 ## Core Features Implemented
 
-### ✅ Mission v11.9 (March 2026) - COMPLETED
-**Vidéo Full-Width & Fix Scroll Réserver**
-1. **Bordures Supprimées** - Retiré `p-6` du container principal App.js
-2. **Full-Width** - Video container = 100% viewport (412px sur Samsung Ultra 24)
-3. **Zero Gap** - Left: 0px, Right: 0px
-4. **Scroll Robuste** - +412px vers sessions-section
+### ✅ Mission v12.1 (March 2026) - COMPLETED
+**Contrôle Admin & Design Premium Minimalist**
+1. **Prix Services Dynamiques** - Super Admin définit le coût en crédits:
+   - Campagne: 2 crédits
+   - Conversation IA: 1 crédit
+   - Code Promo: 3 crédits
+2. **Design Premium Sans Cadre** - Fond #000000, icônes nues, violet #D91CD2 glow uniquement
+3. **Nouvel onglet "Tarifs Services"** dans le panneau Super Admin
 
-**Fix technique:**
-- App.js L3682: `p-6` retiré → `className="w-full min-h-screen relative section-gradient"`
-- App.js L3782: `px-6` ajouté au contenu sous Reels
+**Endpoints:**
+- `GET /api/platform-settings` - Retourne service_prices
+- `PUT /api/platform-settings` - Modifie service_prices (Admin only)
+
+### ✅ Mission v11.9 (March 2026) - COMPLETED
+**Vidéo Full-Width**
+- Bordures supprimées, width=100% viewport
 
 ### ✅ Mission v11.8 (March 2026) - COMPLETED
-**Réparation du Scroll Réserver**
-- Scroll instantané vers sessions-section
-- Console logs de debug
+**Scroll Réserver**
+- +412px vers sessions-section
 
-### ✅ Mission v11.7 (March 2026) - COMPLETED
-**Logique Multi-Partenaires**
-- Identification par email
-- Scroll conditionnel
-
-### ✅ Missions v11.2-v11.5 (March 2026) - COMPLETED
+### ✅ Missions v11.2-v11.7 - COMPLETED
 - Système codes & crédits
-- Date/heure réservation
+- Logique multi-partenaires
 - PWA installable
 
 ## Architecture
@@ -36,37 +36,53 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 ```
 /app/
 ├── backend/
-│   ├── server.py
+│   ├── server.py              # v12.1: service_prices in platform-settings
 │   └── routes/
 │       ├── promo_routes.py
 │       └── reservation_routes.py
 ├── frontend/
 │   ├── src/
-│   │   ├── App.js              # v11.9: p-6 removed from main container
+│   │   ├── App.js
 │   │   └── components/
-│   │       └── PartnersCarousel.js  # v11.8: scroll to sessions
+│   │       ├── SuperAdminPanel.js  # v12.1: Tab Tarifs Services
+│   │       └── PartnersCarousel.js
 │   └── public/
 │       ├── manifest.json
 │       └── sw.js
 └── memory/PRD.md
 ```
 
+## Key API - Service Prices (v12.1)
+
+```json
+// GET /api/platform-settings
+{
+  "service_prices": {
+    "campaign": 2,
+    "ai_conversation": 1,
+    "promo_code": 3
+  }
+}
+```
+
 ## Data Status
-- ✅ 21 réservations intactes
-- ✅ 14 contacts intacts
+- ✅ 22 réservations
+- ✅ 14 contacts
 - ✅ BOSS: 41/47 séances
-- ✅ PWA: standalone
+- ✅ Video: full-width
 
 ## Pending Tasks (P0/P1)
 1. **P0**: Stripe Connect for partner payouts
 2. **P1**: Production deployment
+3. **P1**: Implement credit check before services (verrouillage)
 
 ## Super Admin Access
 - Emails: `contact.artboost@gmail.com`, `afroboost.bassi@gmail.com`
+- Access: Triple-click footer "© Afroboost 2026"
 
 ## Testing Status
-- Mission v11.9: 100% validated
-- Report: `/app/test_reports/iteration_138.json`
+- Mission v12.1: 100% validated (9/9 backend tests)
+- Report: `/app/test_reports/iteration_139.json`
 
 ---
-Last Updated: March 2026 - Mission v11.9 VALIDATED
+Last Updated: March 2026 - Mission v12.1 VALIDATED
