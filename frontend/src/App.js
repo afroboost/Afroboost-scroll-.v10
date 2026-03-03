@@ -3779,7 +3779,15 @@ function App() {
       
       {/* v9.5.8: Contenu scrollable SOUS le flux Reels - Espacement réduit */}
       {/* v11.9: Ajout p-6 ici car retiré du container principal pour full-width video */}
-      <div className="max-w-4xl mx-auto px-6 pt-2" style={{ background: '#000000' }}>
+      {/* v13.6: Fond transparent pour s'intégrer au design global - Zéro Cadre */}
+      <div 
+        className="max-w-4xl mx-auto px-6 pt-2" 
+        style={{ 
+          background: 'transparent', 
+          border: 'none', 
+          boxShadow: 'none'
+        }}
+      >
         {/* v9.5.8: Suppression espace vide */}
 
         {/* Message si aucun résultat */}
@@ -3797,16 +3805,28 @@ function App() {
         )}
 
         {/* Section Sessions - Masquée si filtre Shop actif */}
+        {/* v13.6: Fond transparent pour design "Zéro Cadre" */}
         {activeFilter !== 'shop' && visibleCourses.length > 0 && (
-          <div id="sessions-section" className="mb-8">
+          <div id="sessions-section" className="mb-8" style={{ background: 'transparent', border: 'none', boxShadow: 'none' }}>
             <h2 className="font-semibold mb-4 text-white" style={{ fontSize: '18px' }}>{t('chooseSession')}</h2>
             {/* Container avec scroll pour mobile - scrollbar rose fine 4px */}
             <div 
               className="space-y-4 sessions-scrollbar" 
-              style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}
+              style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px', background: 'transparent' }}
             >
               {visibleCourses.map(course => (
-                <div key={course.id} className={`course-card rounded-xl p-5 ${selectedCourse?.id === course.id ? 'selected' : ''}`} data-testid={`course-card-${course.id}`}>
+                <div 
+                  key={course.id} 
+                  className={`course-card rounded-xl p-5 ${selectedCourse?.id === course.id ? 'selected' : ''}`} 
+                  data-testid={`course-card-${course.id}`}
+                  style={{ 
+                    background: selectedCourse?.id === course.id ? 'rgba(217, 28, 210, 0.08)' : 'transparent',
+                    border: 'none',
+                    borderLeft: selectedCourse?.id === course.id ? '2px solid #d91cd2' : 'none',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: 'none'
+                  }}
+                >
                   <h3 className="font-semibold text-white">{course.name}</h3>
                   <div className="flex items-center gap-2 text-xs text-white opacity-60 mb-1">
                     <LocationIcon />

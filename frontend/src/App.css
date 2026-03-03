@@ -290,22 +290,23 @@ html, body {
 /* Course Cards with Gradient */
 .course-card {
   transition: all 0.3s ease;
-  border: 1px solid rgba(217, 28, 210, 0.25);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), 0 0 5px rgba(217, 28, 210, 0.1);
-  background: linear-gradient(180deg, rgba(5, 5, 10, 0.95) 0%, rgba(30, 10, 28, 0.7) 100%);
+  border: none;
+  box-shadow: none;
+  background: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .course-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 0 25px rgba(217, 28, 210, 0.4), 0 0 10px rgba(217, 28, 210, 0.2);
-  border-color: rgba(217, 28, 210, 0.5);
+  transform: translateY(-1px);
+  box-shadow: none;
+  background: rgba(217, 28, 210, 0.05);
 }
 
 .course-card.selected {
-  border: 2px solid #d91cd2 !important;
-  box-shadow: 
-    0 0 10px rgba(217, 28, 210, 0.3),
-    0 0 20px rgba(217, 28, 210, 0.12);
+  border: none !important;
+  border-left: 2px solid #d91cd2 !important;
+  background: rgba(217, 28, 210, 0.08);
+  box-shadow: none;
 }
 
 /* =================================================================
@@ -315,7 +316,7 @@ html, body {
 
 /* Offer Cards - Clean Design */
 /* Conteneur parent des offres - SWIPE FLUIDE iPhone/Android */
-/* IMPORTANT: padding-top: 30px pour que le glow rose ne soit pas coupé */
+/* v13.6: Suppression padding-top glow */
 .offers-container, .offers-slider {
   display: flex !important;
   flex-wrap: nowrap !important;
@@ -325,7 +326,7 @@ html, body {
   scroll-snap-type: x mandatory !important;
   scroll-behavior: smooth !important;
   gap: 15px !important;
-  padding: 30px 20px 20px 20px !important; /* padding-top 30px pour le glow */
+  padding: 10px 20px 20px 20px !important; /* v13.6: padding-top réduit */
   touch-action: pan-x !important; /* Permet le swipe horizontal */
   -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
   scrollbar-width: thin; /* Firefox */
@@ -353,29 +354,32 @@ html, body {
   scroll-snap-align: center;
   transition: all 0.3s ease;
   cursor: pointer;
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5), 0 0 5px rgba(139, 92, 246, 0.1);
-  background: linear-gradient(180deg, rgba(5, 5, 10, 0.95) 0%, rgba(25, 12, 35, 0.7) 100%);
+  border: none;
+  box-shadow: none;
+  background: #000000;
   height: auto !important;
   min-height: 400px;
   overflow: visible !important;
   display: flex;
   flex-direction: column;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .offer-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(139, 92, 246, 0.6);
-  box-shadow: 0 0 25px rgba(139, 92, 246, 0.4), 0 0 10px rgba(139, 92, 246, 0.2);
+  transform: translateY(-1px);
+  border-color: transparent;
+  background: rgba(217, 28, 210, 0.05);
+  box-shadow: none;
 }
 
 .offer-card.selected {
-  border: 2px solid #d91cd2 !important;
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.08) 0%, rgba(217, 28, 210, 0.04) 100%);
-  box-shadow: 0 0 10px rgba(217, 28, 210, 0.4);
+  border: none !important;
+  border-left: 2px solid #d91cd2 !important;
+  background: rgba(217, 28, 210, 0.06);
+  box-shadow: none;
   height: auto !important;
   max-height: none !important;
-  margin-top: 8px; /* Espace pour que le glow ne soit pas coupé */
+  margin-top: 8px;
 }
 
 /* Offer Card Image - 250px HEIGHT */
