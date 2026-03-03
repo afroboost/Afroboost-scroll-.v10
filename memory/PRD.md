@@ -5,86 +5,78 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 
 ## Core Features Implemented
 
+### ✅ Mission v13.7 (March 2026) - COMPLETED - BUG FIXES URGENTS
+**Réparations d'urgence - Codes Promos & Conversations**
+1. **Fix toggleCodeActive** : Renommé en `toggleCode` dans prop passing (ligne 4544)
+2. **Fix code.isActive** : Changé en `code.active` pour correspondre au backend
+3. **Fix messages vides** : Fallback `msg.content || msg.text || msg.message`
+4. **Fix Invalid Date** : try/catch avec fallback `'—'` pour dates invalides
+5. **Anti-régression** : 22 réservations, 7 contacts intacts
+6. **Tests** : 100% (8/8 backend tests)
+
+**Fichiers modifiés :**
+- `/app/frontend/src/components/CoachDashboard.js` (ligne 4544)
+- `/app/frontend/src/components/dashboard/PromoCodesTab.js` (lignes 276, 303, 306)
+- `/app/frontend/src/components/coach/CRMSection.js` (lignes 277, 393, 636, 644)
+
 ### ✅ Mission v13.6 (March 2026) - COMPLETED
-**Suppression Définitive des Cadres & Design "Zéro Cadre"**
-1. **Design "Zéro Cadre"** appliqué aux sections sessions/offres
-   - Fond transparent (plus de cadre noir visible)
-   - Suppression du glow violet sur les grands conteneurs
-   - Border-bottom subtile (1px) pour séparer les éléments
-2. **CSS Modifié** :
-   - `.course-card` : fond transparent, pas de box-shadow
-   - `.offer-card` : fond #000000, pas de glow violet
-3. **DashboardHeader.js** créé (230 lignes) - Non intégré
-4. **Anti-régression** : 22 réservations, 7 contacts intacts
-5. **Tests** : 100% validés
+- Design "Zéro Cadre" appliqué (fond transparent)
+- DashboardHeader.js créé (230 lignes)
 
-### ✅ Mission v13.5 (March 2026) - COMPLETED
-- Refactoring: 5432 → 4794 lignes (-638 lignes)
-- PageVenteTab.js et PromoCodesTab.js extraits
+### ✅ Missions v13.0-v13.5 - COMPLETED
+- Stripe, verrouillage crédits, refactoring composants
 
-### ✅ Missions v13.0-v13.4 - COMPLETED
-- Stripe intégré, verrouillage crédits
-- Composants extraits: ConceptEditor, CoursesManager, OffersManager, etc.
+## Bug Fixes v13.7 Details
 
-## Architecture v13.6
-
-```
-/app/
-├── frontend/
-│   ├── src/
-│   │   ├── App.js               # Modifié: styles inline transparent
-│   │   ├── App.css              # Modifié: .course-card, .offer-card
-│   │   └── components/
-│   │       ├── CoachDashboard.js  # 4794 lignes
-│   │       └── dashboard/         # 9 composants (2390 lignes)
-│   │           ├── DashboardHeader.js  # 230 lignes (NEW - non intégré)
-│   │           └── ... (autres composants)
-└── backend/
-    └── ... (inchangé)
+### Bug 1: toggleCodeActive not defined
+```javascript
+// CoachDashboard.js ligne 4544
+// AVANT: toggleCodeActive={toggleCodeActive}  // ERREUR
+// APRÈS: toggleCodeActive={toggleCode}        // CORRIGÉ
 ```
 
-## Design "Zéro Cadre" v13.6
-
-### Sessions Section
-```css
-/* Inline styles in App.js */
-#sessions-section { background: transparent; border: none; }
-.course-card { 
-  background: transparent; 
-  border: none; 
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
+### Bug 2: code.isActive vs code.active
+```javascript
+// PromoCodesTab.js
+// AVANT: code.isActive (undefined)
+// APRÈS: code.active (correspond au backend)
 ```
 
-### Offers Section
-```css
-.offer-card { 
-  background: #000000; 
-  border: none; 
-  box-shadow: none;
-}
+### Bug 3: Messages vides
+```javascript
+// CRMSection.js ligne 636
+<p>{msg.content || msg.text || msg.message || '[Message vide]'}</p>
+```
+
+### Bug 4: Invalid Date
+```javascript
+// CRMSection.js avec try/catch
+try {
+  const d = new Date(dateVal);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR');
+} catch { return '—'; }
 ```
 
 ## Data Status (Anti-Régression)
 - ✅ **22 réservations** intactes
 - ✅ **7 contacts** intactes
 - ✅ Video: Full-Width
-- ✅ Bouton Réserver: Scroll fonctionnel (0 → 357)
+- ✅ Design: "Zéro Cadre"
 
 ## Pending Tasks (P0/P1)
 1. **P0**: Intégrer DashboardHeader.js dans CoachDashboard.js
-2. **P0**: Continuer refactoring (objectif <3000 lignes)
+2. **P0**: Continuer refactoring (4795 → objectif <3000 lignes)
 3. **P0**: Cliquer sur "Deploy" Emergent pour URL production
 4. **P1**: Implémenter Stripe Connect complet
-5. **P2**: Déduction crédits Chat actions
+5. **P2**: Nettoyer UI Chat (paramètres anormaux mentionnés par Bassi)
 
 ## Super Admin Access
 - Emails: `contact.artboost@gmail.com`, `afroboost.bassi@gmail.com`
 - Triple-click sur "© Afroboost 2026" pour login admin
 
 ## Testing Status
-- Mission v13.6: **100%** validée
-- Report: `/app/test_reports/iteration_145.json`
+- Mission v13.7: **100%** (8/8 tests)
+- Report: `/app/test_reports/iteration_146.json`
 
 ---
-Last Updated: March 2026 - Mission v13.6 VALIDATED
+Last Updated: March 2026 - Mission v13.7 BUG FIXES VALIDATED
