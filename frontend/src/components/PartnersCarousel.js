@@ -118,6 +118,7 @@ const getMediaInfo = (videoUrl) => {
 };
 
 // === COMPOSANT VIDEO CARD v9.5.7 avec mode maintenance ===
+// v11.7: Ajout isSuperAdminVideo pour désactiver double-clic
 const PartnerVideoCard = ({ partner, onToggleMute, isMuted, onLike, isLiked, onNavigate, isPaused, onTogglePause, isVisible, maintenanceMode = false, isSuperAdmin = false }) => {
   const videoRef = useRef(null);
   const [hasError, setHasError] = useState(false);
@@ -135,6 +136,11 @@ const PartnerVideoCard = ({ partner, onToggleMute, isMuted, onLike, isLiked, onN
   
   // v9.5.7: QUICK CONTROL - Bloquer actions si maintenance ON (sauf Super Admin)
   const isBlocked = maintenanceMode && !isSuperAdmin;
+  
+  // v11.7: Identifier si cette vidéo appartient au Super Admin (pas de double-clic)
+  const SUPER_ADMIN_EMAILS = ['contact.artboost@gmail.com', 'afroboost.bassi@gmail.com'];
+  const partnerEmail = (partner.email || '').toLowerCase().trim();
+  const isSuperAdminVideo = SUPER_ADMIN_EMAILS.some(email => email.toLowerCase() === partnerEmail);
 
   // v9.5.2: Nettoyage des event listeners
   useEffect(() => {
@@ -146,6 +152,7 @@ const PartnerVideoCard = ({ partner, onToggleMute, isMuted, onLike, isLiked, onN
   }, []);
 
   // v9.5.7: Gestion améliorée clic simple vs double-clic (avec blocage maintenance)
+  // v11.7: Double-clic DÉSACTIVÉ sur vidéos Super Admin
   const handleVideoClick = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -167,12 +174,17 @@ const PartnerVideoCard = ({ partner, onToggleMute, isMuted, onLike, isLiked, onN
         // Simple clic -> Play/Pause
         onTogglePause();
       } else if (clickCount.current >= 2) {
-        // Double-clic -> Navigation vitrine
-        onNavigate(partner);
+        // v11.7: Double-clic -> Navigation vitrine UNIQUEMENT si PAS Super Admin
+        if (isSuperAdminVideo) {
+          console.log('[SUPER-ADMIN] Double-clic désactivé sur vidéo Super Admin');
+          onTogglePause(); // Juste play/pause à la place
+        } else {
+          onNavigate(partner);
+        }
       }
       clickCount.current = 0;
     }, 250);
-  }, [onNavigate, onTogglePause, partner]);
+  }, [onNavigate, onTogglePause, partner, isSuperAdminVideo, isBlocked]);
 
   // v9.5.7: handleReserve avec blocage maintenance
   const handleReserve = (e) => {
@@ -624,6 +636,9 @@ const PartnersCarousel = ({ onPartnerClick, onSearch, maintenanceMode = false, i
   }, [activeIndex, filteredPartners.length]);
   
   // Navigation vers vitrine - v9.7.2: VITRINE UNIQUE - Pas de redirection si même partenaire
+  // v11.7: DÉSACTIVÉ pour Super Admin - Pas de redirection vers vitrine Super Admin
+  const SUPER_ADMIN_EMAILS_NAV = ['contact.artboost@gmail.com', 'afroboost.bassi@gmail.com'];
+  
   const handleNavigate = useCallback((partner) => {
     // v9.5.7: QUICK CONTROL - Bloquer navigation si maintenance ON (sauf Super Admin)
     if (maintenanceMode && !isSuperAdmin) {
@@ -631,8 +646,15 @@ const PartnersCarousel = ({ onPartnerClick, onSearch, maintenanceMode = false, i
       return; // Ne rien faire
     }
     
-    // v9.7.2: VITRINE UNIQUE - Si on est déjà sur la vitrine de ce partenaire, ne rien faire
+    // v11.7: Bloquer navigation vers vitrine Super Admin
     const partnerEmail = (partner.email || '').toLowerCase().trim();
+    const isSuperAdminTarget = SUPER_ADMIN_EMAILS_NAV.some(email => email.toLowerCase() === partnerEmail);
+    if (isSuperAdminTarget) {
+      console.log('[SUPER-ADMIN] Navigation vers vitrine Super Admin désactivée');
+      return; // Ne rien faire - pas de vitrine partenaire pour Super Admin
+    }
+    
+    // v9.7.2: VITRINE UNIQUE - Si on est déjà sur la vitrine de ce partenaire, ne rien faire
     const currentVitrine = (currentVitrineEmail || '').toLowerCase().trim();
     
     if (currentVitrine && partnerEmail === currentVitrine) {
@@ -828,10 +850,11 @@ const PartnersCarousel = ({ onPartnerClick, onSearch, maintenanceMode = false, i
       </div>
       
       {/* v9.5.4: Container scroll vertical - Pleine hauteur */}
+      {/* v11.7: ZÉRO PAGE VIDE - Désactiver scroll si <= 1 partenaire */}
       <div 
         ref={sliderRef}
         onScroll={handleScroll}
-        className="snap-y snap-mandatory overflow-y-auto w-full h-full"
+        className={`snap-y snap-mandatory w-full h-full ${filteredPartners.length > 1 ? 'overflow-y-auto' : 'overflow-hidden'}`}
         style={{ 
           scrollBehavior: 'smooth',
           scrollbarWidth: 'none',
