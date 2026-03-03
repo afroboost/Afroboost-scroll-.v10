@@ -294,21 +294,22 @@ def get_coach_filter(email: str) -> dict:
     return {"coach_id": email.lower().strip()}
 
 # v9.0.2: Helper pour déduire les crédits
-async def deduct_credit(coach_email: str, action: str = "action") -> dict:
-    """Déduit 1 crédit du compte coach. Retourne {success, credits_remaining, error}"""
+# v12.1: Support des prix variables par service
+async def deduct_credit(coach_email: str, action: str = "action", amount: int = 1) -> dict:
+    """Déduit des crédits du compte coach. Retourne {success, credits_remaining, error}"""
     if is_super_admin(coach_email):
         return {"success": True, "credits_remaining": -1, "bypassed": True}
     coach = await db.coaches.find_one({"email": coach_email.lower()})
     if not coach:
         return {"success": False, "error": "Coach non trouvé", "credits_remaining": 0}
     current_credits = coach.get("credits", 0)
-    if current_credits <= 0:
-        return {"success": False, "error": "Crédits insuffisants", "credits_remaining": 0}
-    await db.coaches.update_one({"email": coach_email.lower()}, {"$inc": {"credits": -1}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}})
-    logger.info(f"[CREDITS] {coach_email} -1 crédit ({action}) -> {current_credits - 1} restants")
-    return {"success": True, "credits_remaining": current_credits - 1}
+    if current_credits < amount:
+        return {"success": False, "error": f"Crédits insuffisants ({current_credits}/{amount})", "credits_remaining": current_credits}
+    await db.coaches.update_one({"email": coach_email.lower()}, {"$inc": {"credits": -amount}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}})
+    logger.info(f"[CREDITS] {coach_email} -{amount} crédit(s) ({action}) -> {current_credits - amount} restants")
+    return {"success": True, "credits_remaining": current_credits - amount, "deducted": amount}
 
-async def check_credits(coach_email: str) -> dict:
+async def check_credits(coach_email: str, required: int = 1) -> dict:
     """Vérifie le solde de crédits sans déduire"""
     if is_super_admin(coach_email):
         return {"has_credits": True, "credits": -1, "unlimited": True}
@@ -316,7 +317,15 @@ async def check_credits(coach_email: str) -> dict:
     if not coach:
         return {"has_credits": False, "credits": 0, "error": "Coach non trouvé"}
     credits = coach.get("credits", 0)
-    return {"has_credits": credits > 0, "credits": credits}
+    return {"has_credits": credits >= required, "credits": credits, "required": required}
+
+# v12.1: Helper pour récupérer le prix d'un service
+async def get_service_price(service_name: str) -> int:
+    """Récupère le prix d'un service depuis platform_settings"""
+    settings = await db.platform_settings.find_one({"_id": "global"})
+    if settings and settings.get("service_prices"):
+        return settings["service_prices"].get(service_name, 1)
+    return 1  # Prix par défaut
 
 # ASGI app
 app = socketio.ASGIApp(sio, other_asgi_app=fastapi_app)
@@ -6438,14 +6447,28 @@ async def get_platform_settings(request: Request):
             "_id": "global",
             "partner_access_enabled": True,  # Accès partenaires activé par défaut
             "maintenance_mode": False,       # Mode maintenance désactivé par défaut
+            # v12.1: Prix des services en crédits (configurables par Super Admin)
+            "service_prices": {
+                "campaign": 1,       # Coût d'une campagne
+                "ai_conversation": 1, # Coût d'une conversation IA
+                "promo_code": 1       # Coût de génération d'un code promo
+            },
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "updated_by": user_email
         }
         await db.platform_settings.insert_one(settings)
     
+    # v12.1: Assurer que service_prices existe
+    service_prices = settings.get("service_prices", {
+        "campaign": 1,
+        "ai_conversation": 1,
+        "promo_code": 1
+    })
+    
     return {
         "partner_access_enabled": settings.get("partner_access_enabled", True),
         "maintenance_mode": settings.get("maintenance_mode", False),
+        "service_prices": service_prices,  # v12.1
         "is_super_admin": is_admin,
         "updated_at": settings.get("updated_at"),
         "updated_by": settings.get("updated_by")
@@ -6476,6 +6499,16 @@ async def update_platform_settings(request: Request):
     if "maintenance_mode" in data:
         update_fields["maintenance_mode"] = bool(data["maintenance_mode"])
     
+    # v12.1: Mise à jour des prix des services
+    if "service_prices" in data:
+        service_prices = data["service_prices"]
+        update_fields["service_prices"] = {
+            "campaign": max(0, int(service_prices.get("campaign", 1))),
+            "ai_conversation": max(0, int(service_prices.get("ai_conversation", 1))),
+            "promo_code": max(0, int(service_prices.get("promo_code", 1)))
+        }
+        logger.info(f"[PLATFORM-SETTINGS] Service prices updated: {update_fields['service_prices']}")
+    
     # Upsert settings
     result = await db.platform_settings.update_one(
         {"_id": "global"},
@@ -6492,6 +6525,7 @@ async def update_platform_settings(request: Request):
         "success": True,
         "partner_access_enabled": settings.get("partner_access_enabled", True),
         "maintenance_mode": settings.get("maintenance_mode", False),
+        "service_prices": settings.get("service_prices", {"campaign": 1, "ai_conversation": 1, "promo_code": 1}),
         "updated_at": settings.get("updated_at"),
         "message": "Paramètres mis à jour"
     }

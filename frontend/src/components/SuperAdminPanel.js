@@ -42,6 +42,14 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
   const [showPackForm, setShowPackForm] = useState(false);
   const [error, setError] = useState(null);
   
+  // v12.1: État pour les prix des services
+  const [servicePrices, setServicePrices] = useState({
+    campaign: 1,
+    ai_conversation: 1,
+    promo_code: 1
+  });
+  const [savingPrices, setSavingPrices] = useState(false);
+  
   const [packForm, setPackForm] = useState({
     name: '',
     price: '',
@@ -54,12 +62,17 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [packsRes, coachesRes] = await Promise.all([
+        const [packsRes, coachesRes, settingsRes] = await Promise.all([
           axios.get(`${API}/admin/coach-packs/all`, { headers: { 'X-User-Email': userEmail } }),
-          axios.get(`${API}/admin/coaches`, { headers: { 'X-User-Email': userEmail } })
+          axios.get(`${API}/admin/coaches`, { headers: { 'X-User-Email': userEmail } }),
+          axios.get(`${API}/platform-settings`, { headers: { 'X-User-Email': userEmail } })
         ]);
         setPacks(packsRes.data || []);
         setCoaches(coachesRes.data || []);
+        // v12.1: Charger les prix des services
+        if (settingsRes.data?.service_prices) {
+          setServicePrices(settingsRes.data.service_prices);
+        }
       } catch (err) {
         console.error('[ADMIN] Erreur:', err);
         setError(err.response?.data?.detail || 'Erreur de chargement');
@@ -69,6 +82,21 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
     };
     fetchData();
   }, [userEmail]);
+
+  // v12.1: Sauvegarder les prix des services
+  const handleSaveServicePrices = async () => {
+    setSavingPrices(true);
+    try {
+      await axios.put(`${API}/platform-settings`, {
+        service_prices: servicePrices
+      }, { headers: { 'X-User-Email': userEmail } });
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Erreur lors de la sauvegarde des prix');
+    } finally {
+      setSavingPrices(false);
+    }
+  };
 
   // Créer/Modifier un pack
   const handleSavePack = async () => {
@@ -178,61 +206,75 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/95 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: '#000000' }}>
       <div className="min-h-screen py-6 px-4">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          {/* Header - v12.1: Design Premium Sans Cadre */}
+          <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
               <span style={{ color: '#D91CD2' }}><CrownIcon /></span>
               <h1 className="text-2xl font-bold text-white">Panneau Super Admin</h1>
             </div>
             <button 
               onClick={onClose}
-              className="text-white/60 hover:text-white text-2xl p-2"
+              className="text-white/40 hover:text-white text-2xl transition-colors"
               data-testid="close-admin-panel"
             >
               ✕
             </button>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs - v12.1: Ajout onglet Tarifs */}
           <div className="flex gap-2 mb-6 border-b border-white/10 pb-2">
             <button
               onClick={() => setActiveTab('packs')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 text-sm font-medium transition-all ${
                 activeTab === 'packs' 
-                  ? 'bg-purple-500/30 text-white' 
-                  : 'text-white/60 hover:text-white hover:bg-white/10'
+                  ? 'text-white' 
+                  : 'text-white/40 hover:text-white/70'
               }`}
+              style={activeTab === 'packs' ? { color: '#D91CD2' } : {}}
               data-testid="tab-packs"
             >
               Packs Coach ({packs.length})
             </button>
             <button
               onClick={() => setActiveTab('coaches')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 text-sm font-medium transition-all ${
                 activeTab === 'coaches' 
-                  ? 'bg-purple-500/30 text-white' 
-                  : 'text-white/60 hover:text-white hover:bg-white/10'
+                  ? 'text-white' 
+                  : 'text-white/40 hover:text-white/70'
               }`}
+              style={activeTab === 'coaches' ? { color: '#D91CD2' } : {}}
               data-testid="tab-coaches"
             >
               Coachs Partenaires ({coaches.length})
             </button>
+            <button
+              onClick={() => setActiveTab('pricing')}
+              className={`px-4 py-2 text-sm font-medium transition-all ${
+                activeTab === 'pricing' 
+                  ? 'text-white' 
+                  : 'text-white/40 hover:text-white/70'
+              }`}
+              style={activeTab === 'pricing' ? { color: '#D91CD2' } : {}}
+              data-testid="tab-pricing"
+            >
+              💎 Tarifs Services
+            </button>
           </div>
 
-          {/* Erreur */}
+          {/* Erreur - v12.1: Design Sans Cadre */}
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm">
-              {error}
-              <button onClick={() => setError(null)} className="ml-2 text-red-400 hover:text-red-300">✕</button>
+            <div className="mb-4 py-3 text-red-400 text-sm flex items-center gap-2">
+              <span>⚠️</span> {error}
+              <button onClick={() => setError(null)} className="ml-2 text-red-400/60 hover:text-red-400">✕</button>
             </div>
           )}
 
-          {/* Tab Packs */}
+          {/* Tab Packs - v12.1: Design Premium Sans Cadre */}
           {activeTab === 'packs' && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Bouton Créer */}
               <button
                 onClick={() => {
@@ -240,90 +282,90 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
                   setPackForm({ name: '', price: '', credits: '', description: '', features: '' });
                   setShowPackForm(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium transition-all hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)' }}
+                className="flex items-center gap-2 px-6 py-3 text-white font-medium transition-all hover:opacity-80"
+                style={{ background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)', borderRadius: '8px' }}
                 data-testid="create-pack-btn"
               >
                 <PlusIcon />
                 Créer un Pack
               </button>
 
-              {/* Formulaire Pack */}
+              {/* Formulaire Pack - v12.1: Design Sans Cadre */}
               {showPackForm && (
-                <div className="glass rounded-xl p-5" style={{ border: '1px solid rgba(217, 28, 210, 0.3)' }}>
-                  <h3 className="text-lg font-semibold text-white mb-4">
+                <div className="py-6" style={{ borderTop: '1px solid rgba(217, 28, 210, 0.3)', borderBottom: '1px solid rgba(217, 28, 210, 0.3)' }}>
+                  <h3 className="text-lg font-semibold text-white mb-6">
                     {editingPack ? 'Modifier le Pack' : 'Nouveau Pack'}
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                      <label className="text-white/70 text-sm mb-1 block">Nom *</label>
+                      <label className="text-white/50 text-sm mb-2 block">Nom *</label>
                       <input
                         type="text"
                         value={packForm.name}
                         onChange={(e) => setPackForm(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full px-4 py-3 rounded-lg"
-                        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
+                        className="w-full px-4 py-3 text-white"
+                        style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)' }}
                         data-testid="pack-name-input"
                       />
                     </div>
                     <div>
-                      <label className="text-white/70 text-sm mb-1 block">Prix (CHF) *</label>
+                      <label className="text-white/50 text-sm mb-2 block">Prix (CHF) *</label>
                       <input
                         type="number"
                         value={packForm.price}
                         onChange={(e) => setPackForm(prev => ({ ...prev, price: e.target.value }))}
-                        className="w-full px-4 py-3 rounded-lg"
-                        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
+                        className="w-full px-4 py-3 text-white"
+                        style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)' }}
                         data-testid="pack-price-input"
                       />
                     </div>
                     <div>
-                      <label className="text-white/70 text-sm mb-1 block">Crédits inclus *</label>
+                      <label className="text-white/50 text-sm mb-2 block">Crédits inclus *</label>
                       <input
                         type="number"
                         value={packForm.credits}
                         onChange={(e) => setPackForm(prev => ({ ...prev, credits: e.target.value }))}
-                        className="w-full px-4 py-3 rounded-lg"
-                        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
+                        className="w-full px-4 py-3 text-white"
+                        style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)' }}
                         data-testid="pack-credits-input"
                       />
                     </div>
                     <div>
-                      <label className="text-white/70 text-sm mb-1 block">Description</label>
+                      <label className="text-white/50 text-sm mb-2 block">Description</label>
                       <input
                         type="text"
                         value={packForm.description}
                         onChange={(e) => setPackForm(prev => ({ ...prev, description: e.target.value }))}
-                        className="w-full px-4 py-3 rounded-lg"
-                        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
+                        className="w-full px-4 py-3 text-white"
+                        style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)' }}
                         data-testid="pack-description-input"
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="text-white/70 text-sm mb-1 block">Fonctionnalités (une par ligne)</label>
+                      <label className="text-white/50 text-sm mb-2 block">Fonctionnalités (une par ligne)</label>
                       <textarea
                         value={packForm.features}
                         onChange={(e) => setPackForm(prev => ({ ...prev, features: e.target.value }))}
                         rows={3}
                         placeholder="CRM automatisé&#10;Chat IA intégré&#10;Page de vente"
-                        className="w-full px-4 py-3 rounded-lg resize-none"
-                        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' }}
+                        className="w-full px-4 py-3 text-white resize-none"
+                        style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)' }}
                         data-testid="pack-features-input"
                       />
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3 mt-4">
+                  <div className="flex justify-end gap-4 mt-6">
                     <button
                       onClick={() => { setShowPackForm(false); setEditingPack(null); }}
-                      className="px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10"
+                      className="px-4 py-2 text-white/50 hover:text-white"
                     >
                       Annuler
                     </button>
                     <button
                       onClick={handleSavePack}
                       disabled={!packForm.name || !packForm.price || !packForm.credits}
-                      className="px-6 py-2 rounded-lg text-white font-medium transition-all hover:scale-105 disabled:opacity-50"
-                      style={{ background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)' }}
+                      className="px-6 py-2 text-white font-medium transition-all hover:opacity-80 disabled:opacity-30"
+                      style={{ background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)', borderRadius: '8px' }}
                       data-testid="save-pack-btn"
                     >
                       {editingPack ? 'Modifier' : 'Créer'}
@@ -332,31 +374,29 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
                 </div>
               )}
 
-              {/* Liste des Packs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Liste des Packs - v12.1: Design Sans Cadre */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {packs.map(pack => (
                   <div 
                     key={pack.id}
-                    className="glass rounded-xl p-5"
-                    style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                    className="py-5"
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
                     data-testid={`pack-card-${pack.id}`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-lg font-bold text-white">{pack.name}</h3>
-                      <div className="flex gap-1">
+                      <div className="flex gap-2">
                         <button
                           onClick={() => startEditPack(pack)}
-                          className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10"
+                          className="text-white/40 hover:text-white transition-colors"
                           data-testid={`edit-pack-${pack.id}`}
-                          title="Modifier ce pack"
                         >
                           <EditIcon />
                         </button>
                         <button
                           onClick={() => handleDeletePack(pack.id)}
-                          className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          className="text-red-400/60 hover:text-red-400 transition-colors"
                           data-testid={`delete-pack-${pack.id}`}
-                          title="Supprimer ce pack"
                         >
                           <TrashIcon />
                         </button>
@@ -365,23 +405,21 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
                     <div className="text-2xl font-bold mb-1" style={{ color: '#D91CD2' }}>
                       {pack.price} CHF
                     </div>
-                    <div className="text-white/60 text-sm mb-2">{pack.credits} crédits</div>
-                    {pack.description && <p className="text-white/50 text-xs mb-2">{pack.description}</p>}
-                    <div className="flex items-center gap-2 text-xs text-white/40">
+                    <div className="text-white/50 text-sm mb-2">{pack.credits} crédits</div>
+                    {pack.description && <p className="text-white/30 text-xs mb-2">{pack.description}</p>}
+                    <div className="flex items-center gap-2 text-xs text-white/30">
                       {pack.stripe_price_id ? (
-                        <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">Stripe OK</span>
+                        <span className="text-green-400">✓ Stripe</span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400">Sans Stripe</span>
+                        <span className="text-yellow-400">Sans Stripe</span>
                       )}
-                      {!pack.visible && (
-                        <span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">Masqué</span>
-                      )}
+                      {!pack.visible && <span className="text-red-400">● Masqué</span>}
                     </div>
                   </div>
                 ))}
 
                 {packs.length === 0 && (
-                  <div className="col-span-full text-center py-8 text-white/60">
+                  <div className="col-span-full text-center py-8 text-white/40">
                     Aucun pack créé. Créez votre premier pack coach !
                   </div>
                 )}
@@ -397,44 +435,44 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
                   Aucun coach partenaire enregistré
                 </div>
               ) : (
-                <div className="glass rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="overflow-hidden" style={{ background: 'transparent' }}>
                   <table className="w-full">
-                    <thead className="bg-white/5">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-white/70">Coach</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-white/70">Email</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-white/70">Crédits</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-white/70">Stripe</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-white/70">Statut</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-white/70">Actions</th>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-white/50">Coach</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-white/50">Email</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-white/50">Crédits</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-white/50">Stripe</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-white/50">Statut</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-white/50">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {coaches.map(coach => (
-                        <tr key={coach.id} className="border-t border-white/5" data-testid={`coach-row-${coach.id}`}>
+                        <tr key={coach.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }} data-testid={`coach-row-${coach.id}`}>
                           <td className="px-4 py-3 text-sm text-white">{coach.name}</td>
-                          <td className="px-4 py-3 text-sm text-white/70">{coach.email}</td>
+                          <td className="px-4 py-3 text-sm text-white/60">{coach.email}</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              coach.credits > 10 ? 'bg-green-500/20 text-green-400' :
-                              coach.credits > 0 ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-red-500/20 text-red-400'
+                            <span className={`text-sm font-bold ${
+                              coach.credits > 10 ? 'text-green-400' :
+                              coach.credits > 0 ? 'text-yellow-400' :
+                              'text-red-400'
                             }`}>
                               {coach.credits}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              coach.stripe_connect_id ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+                            <span className={`text-xs ${
+                              coach.stripe_connect_id ? 'text-green-400' : 'text-white/30'
                             }`}>
-                              {coach.stripe_connect_id ? '✓ Connecté' : '—'}
+                              {coach.stripe_connect_id ? '✓' : '—'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              coach.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                            <span className={`text-xs ${
+                              coach.is_active ? 'text-green-400' : 'text-red-400'
                             }`}>
-                              {coach.is_active ? 'Actif' : 'Inactif'}
+                              {coach.is_active ? '● Actif' : '○ Inactif'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -446,21 +484,21 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
                                     handleAddCredits(coach.email, parseInt(credits));
                                   }
                                 }}
-                                className="px-2 py-1 rounded text-xs font-medium text-purple-400 hover:bg-purple-500/20"
+                                className="text-xs text-purple-400 hover:text-purple-300"
                                 data-testid={`add-credits-${coach.id}`}
                               >
                                 + Crédits
                               </button>
                               <button
                                 onClick={() => handleToggleCoach(coach.id, coach.is_active)}
-                                className={`px-2 py-1 rounded text-xs font-medium ${coach.is_active ? 'text-yellow-400 hover:bg-yellow-500/20' : 'text-green-400 hover:bg-green-500/20'}`}
+                                className={`text-xs ${coach.is_active ? 'text-yellow-400 hover:text-yellow-300' : 'text-green-400 hover:text-green-300'}`}
                                 data-testid={`toggle-coach-${coach.id}`}
                               >
-                                {coach.is_active ? '⏸ Pause' : '▶ Activer'}
+                                {coach.is_active ? '⏸' : '▶'}
                               </button>
                               <button
                                 onClick={() => handleDeleteCoach(coach.id, coach.name)}
-                                className="px-2 py-1 rounded text-xs font-medium text-red-400 hover:bg-red-500/20"
+                                className="text-xs text-red-400 hover:text-red-300"
                                 data-testid={`delete-coach-${coach.id}`}
                               >
                                 🗑
@@ -473,6 +511,105 @@ const SuperAdminPanel = ({ userEmail, onClose }) => {
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* v12.1: Tab Tarifs Services - Design Premium Sans Cadre */}
+          {activeTab === 'pricing' && (
+            <div className="space-y-6">
+              <div className="text-white/50 text-sm mb-4">
+                Définissez le coût en crédits de chaque service pour les partenaires
+              </div>
+              
+              {/* Service: Campagne */}
+              <div className="flex items-center justify-between py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl">📧</span>
+                  <div>
+                    <div className="text-white font-medium">Campagne Email/WhatsApp</div>
+                    <div className="text-white/40 text-sm">Envoi de messages en masse</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min="0"
+                    value={servicePrices.campaign}
+                    onChange={(e) => setServicePrices(prev => ({ ...prev, campaign: parseInt(e.target.value) || 0 }))}
+                    className="w-20 px-3 py-2 text-center text-white text-lg font-bold"
+                    style={{ background: 'transparent', border: 'none', borderBottom: '2px solid #D91CD2' }}
+                    data-testid="price-campaign"
+                  />
+                  <span className="text-white/40 text-sm">crédits</span>
+                </div>
+              </div>
+
+              {/* Service: Conversation IA */}
+              <div className="flex items-center justify-between py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl">🤖</span>
+                  <div>
+                    <div className="text-white font-medium">Conversation IA</div>
+                    <div className="text-white/40 text-sm">Session de chat avec l'assistant</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min="0"
+                    value={servicePrices.ai_conversation}
+                    onChange={(e) => setServicePrices(prev => ({ ...prev, ai_conversation: parseInt(e.target.value) || 0 }))}
+                    className="w-20 px-3 py-2 text-center text-white text-lg font-bold"
+                    style={{ background: 'transparent', border: 'none', borderBottom: '2px solid #D91CD2' }}
+                    data-testid="price-ai-conversation"
+                  />
+                  <span className="text-white/40 text-sm">crédits</span>
+                </div>
+              </div>
+
+              {/* Service: Code Promo */}
+              <div className="flex items-center justify-between py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl">🎫</span>
+                  <div>
+                    <div className="text-white font-medium">Génération Code Promo</div>
+                    <div className="text-white/40 text-sm">Création d'un code de réduction</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min="0"
+                    value={servicePrices.promo_code}
+                    onChange={(e) => setServicePrices(prev => ({ ...prev, promo_code: parseInt(e.target.value) || 0 }))}
+                    className="w-20 px-3 py-2 text-center text-white text-lg font-bold"
+                    style={{ background: 'transparent', border: 'none', borderBottom: '2px solid #D91CD2' }}
+                    data-testid="price-promo-code"
+                  />
+                  <span className="text-white/40 text-sm">crédits</span>
+                </div>
+              </div>
+
+              {/* Bouton Sauvegarder */}
+              <div className="pt-4">
+                <button
+                  onClick={handleSaveServicePrices}
+                  disabled={savingPrices}
+                  className="px-8 py-3 text-white font-medium transition-all hover:opacity-80 disabled:opacity-50"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #D91CD2, #8b5cf6)',
+                    borderRadius: '8px'
+                  }}
+                  data-testid="save-prices-btn"
+                >
+                  {savingPrices ? 'Sauvegarde...' : '💾 Sauvegarder les tarifs'}
+                </button>
+              </div>
+
+              {/* Note */}
+              <div className="text-white/30 text-xs pt-4">
+                💡 Le Super Admin ne consomme jamais de crédits. Ces tarifs s'appliquent uniquement aux coachs partenaires.
+              </div>
             </div>
           )}
         </div>
