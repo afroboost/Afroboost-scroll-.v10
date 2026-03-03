@@ -2016,6 +2016,19 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
     }
   };
 
+  // v14.3: Améliorer un prompt avec l'IA
+  const enhancePromptWithAI = async (rawPrompt) => {
+    try {
+      const response = await axios.post(`${API}/chat/enhance-prompt`, {
+        raw_prompt: rawPrompt
+      });
+      return response.data.enhanced_prompt;
+    } catch (err) {
+      console.error("Error enhancing prompt:", err);
+      return null;
+    }
+  };
+
   // Créer un chat communautaire (sans IA)
   const createCommunityChat = async () => {
     try {
@@ -4785,6 +4798,7 @@ const CoachDashboard = ({ t, lang, onBack, onLogout, coachUser }) => {
               newLinkCustomPrompt={newLinkCustomPrompt}
               setNewLinkCustomPrompt={setNewLinkCustomPrompt}
               generateShareableLink={generateShareableLink}
+              enhancePromptWithAI={enhancePromptWithAI}
               // Community
               newCommunityName={newCommunityName}
               setNewCommunityName={setNewCommunityName}

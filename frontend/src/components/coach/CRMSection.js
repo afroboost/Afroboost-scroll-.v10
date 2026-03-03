@@ -171,50 +171,83 @@ const GenerateLinkCard = memo(({
   setNewLinkCustomPrompt,
   generateShareableLink,
   loadingConversations,
-  isSuperAdmin
-}) => (
-  <div 
-    className="p-6 rounded-2xl"
-    style={{ background: 'linear-gradient(135deg, rgba(217, 28, 210, 0.15), rgba(139, 92, 246, 0.1))', border: '1px solid rgba(217, 28, 210, 0.3)' }}
-  >
-    <h3 className="text-xl font-semibold text-white mb-4">🔗 Générer un lien de chat</h3>
-    <div className="flex flex-wrap gap-4 items-end">
-      <div className="flex-1 min-w-[200px]">
-        <label className="block text-sm text-white/60 mb-2">Titre (ex: Offre Janvier)</label>
-        <input
-          type="text"
-          value={newLinkTitle}
-          onChange={(e) => setNewLinkTitle(e.target.value)}
-          placeholder="Lien de janvier"
-          className="w-full px-4 py-3 rounded-lg bg-black/30 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500"
-          data-testid="link-title-input"
-        />
-      </div>
-      {isSuperAdmin && (
+  isSuperAdmin,
+  enhancePromptWithAI  // v14.3: Fonction IA pour améliorer le prompt
+}) => {
+  const [isEnhancing, setIsEnhancing] = React.useState(false);
+  
+  // v14.3: Appeler l'IA pour transformer le texte brut en prompt structuré
+  const handleEnhancePrompt = async () => {
+    if (!newLinkCustomPrompt.trim() || isEnhancing) return;
+    setIsEnhancing(true);
+    try {
+      const enhanced = await enhancePromptWithAI(newLinkCustomPrompt);
+      if (enhanced) {
+        setNewLinkCustomPrompt(enhanced);
+      }
+    } catch (err) {
+      console.error('Erreur amélioration prompt:', err);
+    }
+    setIsEnhancing(false);
+  };
+  
+  return (
+    <div 
+      className="p-6 rounded-2xl"
+      style={{ background: 'linear-gradient(135deg, rgba(217, 28, 210, 0.15), rgba(139, 92, 246, 0.1))', border: '1px solid rgba(217, 28, 210, 0.3)' }}
+    >
+      <h3 className="text-xl font-semibold text-white mb-4">🔗 Générer un lien de chat</h3>
+      <div className="flex flex-wrap gap-4 items-end">
         <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm text-white/60 mb-2">Prompt personnalisé (Super Admin)</label>
+          <label className="block text-sm text-white/60 mb-2">Titre (ex: Offre Janvier)</label>
           <input
             type="text"
-            value={newLinkCustomPrompt}
-            onChange={(e) => setNewLinkCustomPrompt(e.target.value)}
-            placeholder="Ex: Focus sur les cours de fitness..."
+            value={newLinkTitle}
+            onChange={(e) => setNewLinkTitle(e.target.value)}
+            placeholder="Lien de janvier"
             className="w-full px-4 py-3 rounded-lg bg-black/30 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500"
-            data-testid="link-prompt-input"
+            data-testid="link-title-input"
           />
         </div>
-      )}
-      <button
-        onClick={generateShareableLink}
-        disabled={loadingConversations}
-        className="px-6 py-3 rounded-lg text-white font-semibold transition-all hover:scale-105 disabled:opacity-50"
-        style={{ background: 'linear-gradient(135deg, #8b5cf6, #d91cd2)' }}
-        data-testid="generate-link-btn"
-      >
-        {loadingConversations ? '⏳' : '➕ Créer le lien'}
-      </button>
+        {isSuperAdmin && (
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm text-white/60 mb-2">Prompt personnalisé (Super Admin)</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newLinkCustomPrompt}
+                onChange={(e) => setNewLinkCustomPrompt(e.target.value)}
+                placeholder="Ex: Focus sur les cours de fitness..."
+                className="flex-1 px-4 py-3 rounded-lg bg-black/30 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                data-testid="link-prompt-input"
+              />
+              {/* v14.3: Bouton IA pour améliorer le prompt */}
+              <button
+                onClick={handleEnhancePrompt}
+                disabled={isEnhancing || !newLinkCustomPrompt.trim()}
+                className="px-3 py-3 rounded-lg text-white transition-all hover:scale-105 disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}
+                title="Améliorer avec l'IA"
+                data-testid="enhance-prompt-btn"
+              >
+                {isEnhancing ? '⏳' : '✨'}
+              </button>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={generateShareableLink}
+          disabled={loadingConversations}
+          className="px-6 py-3 rounded-lg text-white font-semibold transition-all hover:scale-105 disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg, #8b5cf6, #d91cd2)' }}
+          data-testid="generate-link-btn"
+        >
+          {loadingConversations ? '⏳' : '➕ Créer le lien'}
+        </button>
+      </div>
     </div>
-  </div>
-));
+  );
+});
 GenerateLinkCard.displayName = 'GenerateLinkCard';
 
 // ====== COMPOSANT COMMUNITY CHAT CARD ======
@@ -373,7 +406,7 @@ const ConversationItem = memo(({
                session.mode === 'bot' ? '🤖' : '👤'}
             </span>
             <p className="text-white font-medium truncate">
-              {session.participantName || session.participantEmail || 'Visiteur'}
+              {session.participantName || session.participantEmail || 'Client'}
             </p>
             {hasUnread && (
               <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500 text-white">
@@ -384,13 +417,19 @@ const ConversationItem = memo(({
           <p className="text-white/60 text-sm mt-1 truncate">
             {session.lastMessage || 'Nouvelle conversation'}
           </p>
+          {/* v14.3: Afficher la source du lien */}
+          {session.title && (
+            <p className="text-violet-400/70 text-xs mt-1">
+              🔗 Source : {session.title}
+            </p>
+          )}
           <div className="flex items-center gap-3 mt-2 text-xs text-white/40">
             <span>📅 {(() => {
               try {
                 const dateVal = session.lastActivity || session.createdAt;
                 if (!dateVal) return '—';
                 const d = new Date(dateVal);
-                return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR');
+                return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-CH');
               } catch { return '—'; }
             })()}</span>
             <span>💬 {session.messageCount || 0} messages</span>
@@ -441,6 +480,7 @@ const CRMSection = ({
   newLinkCustomPrompt,
   setNewLinkCustomPrompt,
   generateShareableLink,
+  enhancePromptWithAI,  // v14.3: Fonction IA pour améliorer le prompt
   // Community
   newCommunityName,
   setNewCommunityName,
@@ -511,6 +551,7 @@ const CRMSection = ({
         generateShareableLink={generateShareableLink}
         loadingConversations={loadingConversations}
         isSuperAdmin={isSuperAdmin}
+        enhancePromptWithAI={enhancePromptWithAI}  
       />
       
       {/* Create Community */}
@@ -602,9 +643,15 @@ const CRMSection = ({
                   <p className="text-white font-medium flex items-center gap-2">
                     {selectedSession.type === 'community' ? '👥' : 
                      selectedSession.mode === 'bot' ? '🤖' : '👤'}
-                    {selectedSession.participantName || selectedSession.participantEmail || 'Visiteur'}
+                    {selectedSession.participantName || selectedSession.participantEmail || 'Client'}
                   </p>
                   <p className="text-white/40 text-sm">{selectedSession.participantEmail || ''}</p>
+                  {/* v14.3: Afficher la source du lien */}
+                  {selectedSession.title && (
+                    <p className="text-violet-400/80 text-xs mt-1">
+                      🔗 Source : <span className="font-semibold">{selectedSession.title}</span>
+                    </p>
+                  )}
                 </div>
                 <span className={`px-2 py-1 text-xs rounded ${
                   selectedSession.mode === 'bot' ? 'bg-violet-500/20 text-violet-400' : 'bg-green-500/20 text-green-400'
@@ -613,43 +660,56 @@ const CRMSection = ({
                 </span>
               </div>
               
-              {/* Messages */}
+              {/* Messages v14.3: CLIENT = Gris GAUCHE, COACH/IA = Violet DROITE */}
               <div className="flex-1 overflow-y-auto py-4 space-y-3">
                 {sessionMessages.length === 0 ? (
                   <p className="text-white/40 text-center py-8">Aucun message</p>
                 ) : (
-                  sessionMessages.map((msg, idx) => (
-                    <div
-                      key={msg.id || idx}
-                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
+                  sessionMessages.map((msg, idx) => {
+                    // v14.3: Déterminer si c'est un message du client ou du coach/IA
+                    const isClientMessage = msg.sender_type === 'user' || msg.role === 'user';
+                    const isCoachOrAI = msg.sender_type === 'coach' || msg.sender_type === 'assistant' || 
+                                        msg.role === 'coach' || msg.role === 'assistant';
+                    
+                    return (
                       <div
-                        className={`max-w-[80%] p-3 rounded-2xl ${
-                          msg.role === 'user'
-                            ? 'bg-violet-500/30 text-white'
-                            : msg.role === 'coach'
-                            ? 'bg-green-500/30 text-white'
-                            : 'bg-white/10 text-white/80'
-                        }`}
+                        key={msg.id || idx}
+                        className={`flex ${isClientMessage ? 'justify-start' : 'justify-end'}`}
                       >
-                        {/* v13.7: Fallback pour éviter les bulles vides */}
-                        <p className="text-sm">{msg.content || msg.text || msg.message || '[Message vide]'}</p>
-                        <p className="text-xs text-white/40 mt-1">
-                          {/* v13.7: Sécurité date avec fallback */}
-                          {(() => {
-                            const dateVal = msg.timestamp || msg.createdAt || msg.created_at;
-                            if (!dateVal) return '—';
-                            try {
-                              const d = new Date(dateVal);
-                              return isNaN(d.getTime()) ? '—' : d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                            } catch { return '—'; }
-                          })()}
-                          {msg.role === 'coach' && ' • 👤 Vous'}
-                          {msg.role === 'assistant' && ' • 🤖 Bot'}
-                        </p>
+                        <div
+                          className={`max-w-[80%] p-3 rounded-2xl ${
+                            isClientMessage
+                              ? 'bg-gray-700/80 text-white' // Client: Gris foncé, GAUCHE
+                              : 'text-white' // Coach/IA: Violet Afroboost, DROITE
+                          }`}
+                          style={!isClientMessage ? { backgroundColor: '#D91CD2' } : {}}
+                        >
+                          {/* v14.3: Nom de l'expéditeur */}
+                          <p className="text-xs font-semibold mb-1 opacity-70">
+                            {isClientMessage 
+                              ? (msg.sender_name || selectedSession.participantName || 'Client')
+                              : (msg.sender_type === 'assistant' || msg.role === 'assistant' ? '🤖 Assistant IA' : '👤 Vous')
+                            }
+                          </p>
+                          {/* v13.7: Fallback pour éviter les bulles vides */}
+                          <p className="text-sm">{msg.content || msg.text || msg.message || '[Message vide]'}</p>
+                          <p className="text-xs text-white/60 mt-1">
+                            {/* v14.3: Date format fr-CH */}
+                            {(() => {
+                              const dateVal = msg.timestamp || msg.createdAt || msg.created_at;
+                              if (!dateVal) return '—';
+                              try {
+                                const d = new Date(dateVal);
+                                return isNaN(d.getTime()) ? '—' : d.toLocaleString('fr-CH', { 
+                                  hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'
+                                });
+                              } catch { return '—'; }
+                            })()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
               

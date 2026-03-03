@@ -3671,11 +3671,12 @@ export const ChatWidget = () => {
                       Synchronisation...
                     </span>
                   ) : (
-                    /* v14.0: Afficher le nom du lien actif si disponible */
+                    /* v14.3: Afficher "Assistant Afroboost : [Nom du Lien]" si disponible */
                     sessionData?.title ? (
                       <span className="flex items-center gap-1">
-                        <span style={{ opacity: 0.7, fontSize: '10px' }}>🔗</span>
-                        {sessionData.title}
+                        <span style={{ fontSize: '10px' }}>🤖</span>
+                        <span>Assistant Afroboost : </span>
+                        <span className="font-bold" style={{ color: '#D91CD2' }}>{sessionData.title}</span>
                       </span>
                     ) :
                     /* Afficher le statut abonné si profil validé + cours restants */

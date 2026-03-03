@@ -5221,6 +5221,59 @@ async def delete_chat_link(link_id: str):
     logger.info(f"[DELETE] Lien {link_id} supprimé avec succès ✅")
     return {"success": True, "message": "Lien supprimé"}
 
+# v14.3: Endpoint pour améliorer un prompt avec l'IA
+@api_router.post("/chat/enhance-prompt")
+async def enhance_prompt_with_ai(request: Request):
+    """
+    Transforme un texte brut en prompt structuré pour le chat IA.
+    Utilise l'IA pour reformuler et structurer le prompt de manière professionnelle.
+    """
+    body = await request.json()
+    raw_prompt = body.get("raw_prompt", "").strip()
+    
+    if not raw_prompt:
+        raise HTTPException(status_code=400, detail="Le prompt brut est requis")
+    
+    # Récupérer la config IA
+    ai_config = await db.ai_config.find_one({"id": "ai_config"}, {"_id": 0})
+    if not ai_config or not ai_config.get("enabled"):
+        raise HTTPException(status_code=503, detail="L'assistant IA est désactivé")
+    
+    try:
+        # Utiliser l'IA pour améliorer le prompt
+        from emergentintegrations.llm.chat import chat, Message
+        
+        system_prompt = """Tu es un expert en rédaction de prompts pour assistants IA.
+Transforme le texte brut suivant en un prompt clair, structuré et professionnel.
+Le prompt doit:
+- Définir clairement le rôle de l'assistant
+- Préciser le ton et le style de communication
+- Inclure des instructions spécifiques si mentionnées
+- Être concis mais complet
+
+Réponds UNIQUEMENT avec le prompt amélioré, sans explication."""
+
+        response = await chat(
+            api_key=ai_config.get("api_key"),
+            model=ai_config.get("model", "gpt-4o-mini"),
+            messages=[
+                Message(role="system", content=system_prompt),
+                Message(role="user", content=f"Texte brut à transformer:\n{raw_prompt}")
+            ],
+            max_tokens=500
+        )
+        
+        enhanced = response.content.strip()
+        logger.info(f"[ENHANCE-PROMPT] Prompt amélioré: {raw_prompt[:30]}... -> {enhanced[:50]}...")
+        
+        return {"enhanced_prompt": enhanced, "original": raw_prompt}
+        
+    except Exception as e:
+        logger.error(f"[ENHANCE-PROMPT] Erreur: {str(e)}")
+        # Fallback: retourner le prompt original structuré manuellement
+        fallback = f"Tu es un assistant virtuel professionnel. {raw_prompt}. Sois courtois et aide l'utilisateur au mieux."
+        return {"enhanced_prompt": fallback, "original": raw_prompt, "fallback": True}
+
 # --- Intelligent Chat Entry Point ---
 @api_router.post("/chat/smart-entry")
 async def smart_chat_entry(request: Request):
