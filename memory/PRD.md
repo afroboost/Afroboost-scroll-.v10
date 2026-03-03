@@ -5,29 +5,33 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 
 ## Core Features Implemented
 
+### ✅ Mission v11.8 (March 2026) - COMPLETED
+**Réparation du Scroll Réserver & Audit Réel**
+1. **Scroll Instantané** - Clic sur Réserver (vidéo SA) scrolle vers `sessions-section` (+407px)
+2. **Aucune Redirection** - URL reste inchangée après clic
+3. **Double-clic Désactivé** - Sur vidéo SA, fait uniquement play/pause
+4. **Console Logs** - Confirmation: `[SUPER-ADMIN] ✅ Scroll effectué vers sessions-section`
+
 ### ✅ Mission v11.7 (March 2026) - COMPLETED
-**Logique Multi-Partenaires & Flux Intelligent**
-1. **Identification par Email** - Chaque vitrine partenaire liée à un email unique
-2. **Flux Reels Dynamique** - Scroll vertical seulement si >1 partenaire actif
-3. **Protection Super Admin** - Double-clic désactivé sur vidéos SA (play/pause uniquement)
-4. **Scroll vers Offres** - Bouton Réserver scrolle vers section offres sans redirection
+**Logique Multi-Partenaires**
+- Identification par email unique
+- Scroll Reels conditionnel (>1 partenaire)
+- Protection Super Admin
 
 ### ✅ Mission v11.5 (March 2026) - COMPLETED
-**Date/Heure Réservation & Sécurité**
-- Affichage date/heure dans confirmation (format français avec année)
-- Bouton X ferme le bloc de confirmation
-- Protection données intacte
+**Date/Heure Réservation**
+- Affichage date/heure dans confirmation
 
 ### ✅ Mission v11.4 (March 2026) - COMPLETED
-**Système de Codes & Crédits Chat**
-- Validation code crée abonnement avec séances
-- Bloc info abonnement (offre + solde + validité)
-- Déduction automatique à la réservation
+**Système Codes & Crédits**
+- Validation code crée abonnement
+- Bloc info abonnement (solde)
+- Déduction automatique
 
 ### ✅ Mission v11.2 (March 2026) - COMPLETED
 **Prompts Indépendants & PWA**
-- Isolation totale des custom_prompts par lien
-- PWA installable (manifest + service worker)
+- Isolation custom_prompts
+- PWA installable
 
 ## Architecture
 
@@ -37,19 +41,16 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 │   ├── server.py
 │   ├── routes/
 │   │   ├── promo_routes.py      # Subscription system
-│   │   ├── reservation_routes.py # Auto-deduct sessions
-│   │   ├── auth_routes.py
-│   │   ├── coach_routes.py
-│   │   └── campaign_routes.py
+│   │   ├── reservation_routes.py
+│   │   └── ...
 │   └── shared.py
 ├── frontend/
 │   ├── src/
-│   │   ├── App.js
+│   │   ├── App.js               # Main + sessions-section
 │   │   ├── components/
-│   │   │   ├── CoachVitrine.js     # Partner storefront
-│   │   │   ├── CoachDashboard.js   # Partner management
-│   │   │   ├── PartnersCarousel.js # Main Reels feed (v11.7)
-│   │   │   └── ChatWidget.js       # Chat + subscription info
+│   │   │   ├── CoachVitrine.js  # Partner storefront
+│   │   │   ├── PartnersCarousel.js # Reels feed (v11.8)
+│   │   │   └── ChatWidget.js
 │   │   └── services/
 │   │       └── SoundManager.js
 │   └── public/
@@ -58,34 +59,40 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 └── memory/PRD.md
 ```
 
-## Key Logic (v11.7)
+## Key Logic (v11.8)
 
-### Super Admin Protection
+### handleReserve - Scroll for Super Admin
 ```javascript
-const SUPER_ADMIN_EMAILS = ['contact.artboost@gmail.com', 'afroboost.bassi@gmail.com'];
-const isSuperAdminVideo = SUPER_ADMIN_EMAILS.some(email => email.toLowerCase() === partnerEmail);
-// Double-clic sur SA -> play/pause uniquement, pas de navigation
+const handleReserve = (e) => {
+  if (isSuperAdminVideo) {
+    const offersSection = document.getElementById('sessions-section') || 
+                         document.getElementById('offers-section');
+    if (offersSection) {
+      offersSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return;
+  }
+  onNavigate(partner); // For other partners
+};
 ```
 
-### Conditional Scroll
-```javascript
-// Scroll activé UNIQUEMENT si >1 partenaire
-className={`${filteredPartners.length > 1 ? 'overflow-y-auto' : 'overflow-hidden'}`}
-```
+## Data Status
+- ✅ 21 réservations intactes
+- ✅ 14 contacts intacts  
+- ✅ Système BOSS: 41/47 séances
+- ✅ PWA: display: standalone
 
 ## Pending Tasks (P0/P1)
 1. **P0**: Stripe Connect for partner payouts
 2. **P1**: Production deployment
-3. **P1**: Continue modularizing server.py
 
 ## Super Admin Access
 - Emails: `contact.artboost@gmail.com`, `afroboost.bassi@gmail.com`
 - Login: Triple-click footer "© Afroboost 2026"
 
 ## Testing Status
-- Mission v11.7: 10/10 pytest tests PASS
-- Data: 21 réservations, 14 contacts intacts
-- Report: `/app/test_reports/iteration_136.json`
+- Mission v11.8: 100% frontend validated
+- Report: `/app/test_reports/iteration_137.json`
 
 ---
-Last Updated: March 2026 - Mission v11.7 VALIDATED
+Last Updated: March 2026 - Mission v11.8 VALIDATED
