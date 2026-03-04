@@ -5,44 +5,57 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 
 ## Core Features Implemented
 
-### Mission v14.7 (March 2026) - COMPLETED - ÉTANCHÉITÉ CONTACTS
-**Étanchéité des données multi-partenaires + validation recherche**
+### Mission v14.8 (March 2026) - COMPLETED - CALENDRIER RÉALIGNÉ
+**Correction décalage calendrier +7 jours**
 
-#### Nouvelles fonctionnalités:
-1. **Filtrage coach_id sur tous les endpoints** (server.py):
-   - GET /chat/sessions : Filtré par coach_id (ligne 4350)
-   - GET /conversations : Filtré par coach_id (ligne 4440)
-   - GET /chat/participants : Filtré par coach_id (ligne 3968)
-   - POST /chat/generate-link : coach_id tatoué sur la session (ligne 5190)
+#### Bug corrigé:
+- **Symptôme**: Le calendrier affichait le 11 mars au lieu du 4 mars (aujourd'hui)
+- **Cause racine**: `if (daysUntilCourse <= 0)` incluait 0 (jour même) comme nécessitant +7 jours
+- **Fix appliqué**: Changé en `if (daysUntilCourse < 0)` pour permettre la réservation le jour même
 
-2. **Règles d'étanchéité**:
-   - Super Admin (`is_super_admin`) : Voit TOUT
-   - Partenaires : Voient uniquement leurs données (`coach_id == email`)
+#### Fichiers modifiés:
+1. **ChatWidget.js** (ligne 1806): `if (daysUntilCourse < 0)`
+2. **BookingPanel.js** (ligne 22): `if (daysUntilCourse < 0)`
 
-3. **Recherche validée** (CoachVitrine.js):
-   - Case-insensitive avec `toLowerCase()` (lignes 864-869)
-   - Bouton ✕ réinitialise la liste
+#### Format de date:
+- Changé de `fr-FR / Europe/Paris` à `fr-CH / Europe/Zurich` (Neuchâtel)
+- Affichage: "Mercredi 4 mars 2026" ✅
 
-4. **Campagnes multimédia**:
-   - Scheduler persiste en MongoDB (`status: scheduled`)
-   - `object-fit: cover` pour images Samsung
+### Mission v14.7 (March 2026) - COMPLETED
+- Étanchéité contacts multi-partenaires (coach_id)
 
 ### Mission v14.6 (March 2026) - COMPLETED
-- Recherche offres par mots-clés côté client
+- Recherche offres par mots-clés
 
 ### Missions v14.0-14.5 - COMPLETED
-- Activation IA, bouton Copier, document.title, badge Session Active
-- Bulles colorées, dates fr-CH, Source du lien
+- Activation IA, bouton Copier, document.title, bulles colorées
 
-## Data Status (Anti-Régression v14.7)
+## Data Status (Anti-Régression v14.8)
 - 2 réservations ✅
 - 8 contacts ✅
 - 3 offres ✅
-- 8+ chat links ✅
 
 ## Testing Status
-- Mission v14.7: **100% backend** (19/19), **100% frontend**
-- Report: `/app/test_reports/iteration_152.json`
+- Mission v14.8: **100% frontend** - Calendrier affiche 04.03 (correct)
+- Report: `/app/test_reports/iteration_153.json`
+
+## Bug Fix Details v14.8
+
+### Avant le fix (BUG):
+```javascript
+let daysUntilCourse = weekday - currentDay;
+if (daysUntilCourse <= 0) daysUntilCourse += 7;  // ❌ BUG
+// Mercredi (3) - Mercredi (3) = 0
+// 0 <= 0 → TRUE → +7 = 7 jours → 11 mars (FAUX)
+```
+
+### Après le fix (CORRECT):
+```javascript
+let daysUntilCourse = weekday - currentDay;
+if (daysUntilCourse < 0) daysUntilCourse += 7;  // ✅ FIX
+// Mercredi (3) - Mercredi (3) = 0
+// 0 < 0 → FALSE → 0 jours → 4 mars (CORRECT)
+```
 
 ## Pending Tasks
 
@@ -51,47 +64,14 @@ Multi-partner SaaS platform for fitness coaching with a mobile-first, "Instagram
 
 ### P1 (High Priority)
 - Intégration Stripe Connect pour paiements partenaires
-- Titre par défaut pour liens sans titre
-- Continuer modularisation CoachDashboard.js
 
 ### P2 (Medium Priority)
 - Déduction crédits pour actions Chat
-- Investigation hook useDebounce
+- Modularisation CoachDashboard.js
 
 ## Super Admin Access
 - Emails: `contact.artboost@gmail.com`, `afroboost.bassi@gmail.com`
 - Triple-click "© Afroboost 2026" pour login admin
 
-## Architecture
-
-### Étanchéité Multi-Partenaires (v14.7)
-```python
-# server.py - Règle d'étanchéité
-if is_super_admin(caller_email):
-    # Super Admin voit TOUT
-    query = {}
-else:
-    # Partenaire voit uniquement ses données
-    query["coach_id"] = caller_email
-```
-
-### Endpoints avec coach_id
-| Endpoint | Méthode | Filtrage |
-|----------|---------|----------|
-| /chat/sessions | GET | ✅ coach_id |
-| /conversations | GET | ✅ coach_id |
-| /chat/participants | GET | ✅ coach_id |
-| /chat/generate-link | POST | ✅ coach_id ajouté |
-
-### Key Frontend Files
-```
-/app/frontend/src/components/
-├── CoachVitrine.js           # v14.6-14.7: Recherche case-insensitive
-├── ChatWidget.js             # v14.5: document.title, badge
-├── CoachDashboard.js         # Main dashboard
-└── coach/
-    └── CRMSection.js         # v14.3: Bulles colorées, dates fr-CH
-```
-
 ---
-Last Updated: March 2026 - Mission v14.7 VALIDATED
+Last Updated: March 2026 - Mission v14.8 CALENDRIER RÉALIGNÉ
