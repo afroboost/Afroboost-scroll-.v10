@@ -13,12 +13,14 @@
 import React, { memo, useMemo } from 'react';
 
 // === FORMATTER DE DATE FRANÇAIS (Europe/Paris) ===
+// v14.8: FIX - Correction décalage +7 jours (permettre cours le jour même)
 const formatCourseDate = (time, weekday) => {
   // Créer une date pour le prochain jour de la semaine correspondant
   const today = new Date();
   const currentDay = today.getDay();
   let daysUntilCourse = weekday - currentDay;
-  if (daysUntilCourse <= 0) daysUntilCourse += 7;
+  // v14.8: < 0 (pas <= 0) pour permettre cours le jour même
+  if (daysUntilCourse < 0) daysUntilCourse += 7;
   
   const courseDate = new Date(today);
   courseDate.setDate(today.getDate() + daysUntilCourse);
@@ -29,15 +31,15 @@ const formatCourseDate = (time, weekday) => {
     courseDate.setHours(parseInt(hours) || 18, parseInt(minutes) || 30, 0, 0);
   }
   
-  // Formater en français avec fuseau Europe/Paris (v11.5: ajout année)
-  const formatter = new Intl.DateTimeFormat('fr-FR', {
+  // v14.8: Formater en Suisse (fr-CH) avec fuseau Europe/Zurich (Neuchâtel)
+  const formatter = new Intl.DateTimeFormat('fr-CH', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'Europe/Paris'
+    timeZone: 'Europe/Zurich'
   });
   
   const formatted = formatter.format(courseDate);

@@ -1,0 +1,66 @@
+{
+  "summary": "Mission v14.8 Testing Complete - Calendar +7 day offset fix VERIFIED. Bug fixed: 'if (daysUntilCourse <= 0)' changed to 'if (daysUntilCourse < 0)' in ChatWidget.js (line 1806) and BookingPanel.js (line 22). Frontend shows correct date 04.03 (today) instead of 11.03 (+7 days bug). 10/11 backend tests passed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/reservations", "issue": "Returns 0 reservations (data state, not a bug)"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_v148_mission.py",
+    "/app/test_reports/pytest/pytest_v148_mission.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✅ ChatWidget.js line 1806: 'if (daysUntilCourse < 0)' - CORRECT (< 0, not <= 0)",
+    "✅ BookingPanel.js line 22: 'if (daysUntilCourse < 0)' - CORRECT (< 0, not <= 0)",
+    "✅ Date format fr-CH with timeZone Europe/Zurich verified in both files",
+    "✅ Frontend shows 'mer., 04.03. • 18:30' for Wednesday course on March 4 (TODAY)",
+    "✅ Same-day booking now works correctly (daysUntilCourse=0 does NOT trigger +7 days)",
+    "✅ Logic verified: Wednesday (day 3) + course Wednesday (weekday 3) = 0 days = 04.03.2026"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_v148_mission.py"
+  ],
+  "success_rate": {
+    "backend": "91% (10/11 tests passed)",
+    "frontend": "100% (date display verified correct)"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Mission v14.8 calendar date fix verified. The bug was in the condition 'if (daysUntilCourse <= 0)' which has been fixed to 'if (daysUntilCourse < 0)' to allow same-day booking. Both ChatWidget.js (line 1806) and BookingPanel.js (line 22) have the fix. Frontend correctly shows 'mer., 04.03.' for Wednesday March 4 course. Date format is fr-CH with Europe/Zurich timezone. Anti-regression: 8 contacts (PASS), 0 reservations (data state).",
+  "verified_v148_features": {
+    "date_calculation_fix": "✅ < 0 instead of <= 0",
+    "same_day_booking": "✅ Works correctly",
+    "date_format": "✅ fr-CH with Europe/Zurich timezone",
+    "frontend_display": "✅ Shows 04.03 (today) not 11.03 (+7 days)",
+    "chatwidget_fix": "✅ Line 1806: if (daysUntilCourse < 0)",
+    "bookingpanel_fix": "✅ Line 22: if (daysUntilCourse < 0)"
+  },
+  "bug_rca": {
+    "description": "Calendar was showing March 11 instead of March 4 (today)",
+    "root_cause": "The condition 'if (daysUntilCourse <= 0)' included 0 (same-day) as needing +7 days",
+    "fix_applied": "Changed to 'if (daysUntilCourse < 0)' so same-day (0) doesn't add 7 days",
+    "affected_files": ["ChatWidget.js line 1806", "BookingPanel.js line 22"],
+    "verification": "Frontend shows 'mer., 04.03. • 18:30' for Wednesday course on Wednesday March 4"
+  },
+  "anti_regression_status": {
+    "contacts_count": "8 (PASS - expected >= 8)",
+    "reservations_count": "0 (data state, endpoint working)",
+    "courses_endpoint": "200 OK",
+    "offers_endpoint": "200 OK",
+    "discount_codes_endpoint": "200 OK",
+    "chat_sessions_endpoint": "200 OK (Super Admin)",
+    "platform_settings_endpoint": "200 OK",
+    "coach_vitrine_endpoint": "200 OK"
+  },
+  "test_credentials": {
+    "super_admin": "contact.artboost@gmail.com"
+  }
+}

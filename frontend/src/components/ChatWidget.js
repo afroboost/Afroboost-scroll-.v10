@@ -1798,11 +1798,13 @@ export const ChatWidget = () => {
         
         // v10.3: Message de confirmation PREMIUM avec récapitulatif
         // v11.5: Ajout de la date et heure précises
+        // v14.8: FIX - Correction décalage +7 jours (permettre réservation le jour même)
         const formatReservationDate = (time, weekday) => {
           const today = new Date();
           const currentDay = today.getDay();
           let daysUntilCourse = weekday - currentDay;
-          if (daysUntilCourse <= 0) daysUntilCourse += 7;
+          // v14.8: < 0 (pas <= 0) pour permettre réservation le jour même
+          if (daysUntilCourse < 0) daysUntilCourse += 7;
           const courseDate = new Date(today);
           courseDate.setDate(today.getDate() + daysUntilCourse);
           if (time) {
@@ -1813,14 +1815,15 @@ export const ChatWidget = () => {
         };
         
         const reservationDate = formatReservationDate(selectedCourse.time, selectedCourse.weekday);
-        const formattedDateTime = new Intl.DateTimeFormat('fr-FR', {
+        // v14.8: Format Suisse (fr-CH) avec fuseau Europe/Zurich (Neuchâtel)
+        const formattedDateTime = new Intl.DateTimeFormat('fr-CH', {
           weekday: 'long',
           day: 'numeric',
           month: 'long',
           year: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
-          timeZone: 'Europe/Paris'
+          timeZone: 'Europe/Zurich'
         }).format(reservationDate);
         
         const confirmMsg = {
